@@ -41,6 +41,8 @@ names(FACS.long.mln)[names(FACS.long.mln) == "variable"] <- "pop"
 immuno.long <- merge(qPCR, ELISA_CEWE)
 immuno.long <- merge(immuno.long, FACS.long.mln)
 
+write.csv(immuno.long, "/Users/Luke Bednar/Mouse_Eimeria_Databasing/data/HZ19_immuno_long.csv")
+
 # IFNy vs delta
 ggscatter(immuno.long, x = "delta", y = "IFNy", add = "reg.line", color = "MC") +
   facet_grid(~MC, scales = "free")+

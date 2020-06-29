@@ -27,7 +27,7 @@ library(ggpmisc)
 #   ggtitle("Gene expression in wild samples")
 
 ###### 
-complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_P3_E6_complete.csv"))
+complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_E6_complete.csv"))
 # make negative MCs into NAs in a new column
 complete$delta_clean <- complete$delta
 complete <- mutate(complete, delta_clean = ifelse(Eim_MC == "neg", -30, delta_clean))
@@ -59,7 +59,7 @@ lab_genes_long <- reshape2::melt(lab_genes,
                         id.vars = c("EH_ID"))
 names(lab_genes_long)[names(lab_genes_long) == "variable"] <- "Target"
 ### 3) FACS
-lab_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_FACS_complete.csv"))
+lab_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_FACS.csv"))
 lab_FACS$X <- NULL
 lab_FACS <- dplyr::select(lab_FACS, EH_ID, infHistory, CD4, Treg, Div_Treg, Treg17, Treg_prop, Th1, Div_Th1,
                            Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IL17A_CD4, IFNy_CD8)
@@ -80,7 +80,7 @@ lab_FACS_long <- lab_FACS_long %>% dplyr::group_by(EH_ID, pop, infHistory) %>% d
 #lab_para <- dplyr::select(complete, )
 
 # IFNy data ELISA
-lab_ELISA_CEWE <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_CEWE_ELISAs/E7_112018_Eim_CEWE_ELISA_complete.csv"))
+lab_ELISA_CEWE <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_CEWE_ELISA.csv"))
 lab_ELISA_CEWE$X <- NULL
 lab_ELISA_CEWE$label <- NULL
 
@@ -93,11 +93,11 @@ lab_immuno <- merge(lab_immuno, lab_ELISA_CEWE)
 
 ########## create wild_immuno in it's own script
 ##### add and process so that both tables can be rbound
-wild_immuno <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Databasing/master/data/HZ19_wild_immuno_long.csv"))
-lab_immuno_compare <- select(lab_immuno, EH_ID, delta, Eim_MC, EXP_type, pop, counts, IFNy)
-wild_immuno_compare <- select(wild_immuno, Mouse_ID, delta, MC.Eimeria, EXP_type, IFNy, pop, counts)
+wild_immuno <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Databasing/master/data/HZ19_immuno_long.csv"))
+lab_immuno_compare <- dplyr::select(lab_immuno, EH_ID, delta, Eim_MC, EXP_type, pop, counts, IFNy)
+wild_immuno_compare <- dplyr::select(wild_immuno, Mouse_ID, delta, MC, EXP_type, IFNy, pop, counts)
 names(lab_immuno_compare)[names(lab_immuno_compare) == "EH_ID"] <- "Mouse_ID"
-names(wild_immuno_compare)[names(wild_immuno_compare) == "MC.Eimeria"] <- "Eim_MC"
+names(wild_immuno_compare)[names(wild_immuno_compare) == "MC"] <- "Eim_MC"
 wild_immuno_compare$Eim_MC[wild_immuno_compare$Eim_MC == "TRUE"] <- "infected"
 wild_immuno_compare$Eim_MC[wild_immuno_compare$Eim_MC == "FALSE"] <- "uninfected"
 lab_immuno_compare$Eim_MC <- as.character(lab_immuno_compare$Eim_MC)
@@ -110,8 +110,8 @@ immuno <- subset(immuno, !immuno$pop == "Treg_prop")
 # just infection intensities to start
 lab_immuno_delta <- lab_immuno_compare
 wild_immuno_delta <- wild_immuno_compare
-lab_immuno_delta <- select(lab_immuno_delta, Mouse_ID, delta, Eim_MC, EXP_type)
-wild_immuno_delta <- select(wild_immuno_delta, Mouse_ID, delta, Eim_MC, EXP_type)
+lab_immuno_delta <- dplyr::select(lab_immuno_delta, Mouse_ID, delta, Eim_MC, EXP_type)
+wild_immuno_delta <- dplyr::select(wild_immuno_delta, Mouse_ID, delta, Eim_MC, EXP_type)
 lab_immuno_delta <- distinct(lab_immuno_delta)
 wild_immuno_delta <- distinct(wild_immuno_delta)
 
