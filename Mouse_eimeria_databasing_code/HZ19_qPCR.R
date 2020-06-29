@@ -53,6 +53,7 @@ qPCR.wide$Mouse_ID <- sub("^", "AA_0", qPCR.wide$Mouse_ID)
 qPCR.wide$EXP_type <- "wild"
 # remove Mus MC because they are all true
 qPCR.wide$MC.Mus <- NULL
+names(qPCR.wide)[names(qPCR.wide)== "MC.Eimeria"] <- "MC" 
 
-write.csv(qPCR.wide, "/Users/Luke Bednar/Mouse_Eimeria_Databasing/data/Eimeria_detection/HZ19_qPCR.csv")
+write.csv(qPCR.wide, "/Users/Luke Bednar/Mouse_Eimeria_Databasing/data/Eimeria_detection/HZ19_CEWE_qPCR.csv")
 write.csv(qPCR.wide, "./Mouse_Eimeria_Databasing/data/Eimeria_detection//HZ19_qPCR.csv")
