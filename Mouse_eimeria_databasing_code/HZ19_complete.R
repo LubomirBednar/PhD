@@ -26,6 +26,21 @@ FACS$X <- NULL
 
 immuno <- merge(qPCR, ELISA_CEWE, all = T)
 immuno <- merge(immuno, FACS, all = T)
+### check IFNy vs delta now
+ggscatter(immuno, x = "delta", y = "IFNy", add = "reg.line", color = "MC") +
+  facet_grid(~MC, scales = "free")+
+  stat_cor(method = "spearman", label.x =-5, label.y = 600) +
+  stat_regline_equation(label.x = -5, label.y = 500) + 
+  labs(y = "IFN-y (pg/mL)", x = "deltaCT = Mouse - Eimeria") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("infection intensity effect on IFN-y abundance")
+
 #make into long
 SpleenDF <- filter(FACS, Position == "spleen")
 mLNDF <- filter(FACS, Position == "mLN")
