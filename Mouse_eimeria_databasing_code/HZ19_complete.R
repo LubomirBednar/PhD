@@ -50,11 +50,10 @@ FACS.long.mln <- melt(mLNDF,
                 v.names = "cell.pop",
                 na.rm = T, value.name = "counts", 
                 id.vars = c("Mouse_ID", "Position"))
-FACS.long.mln <- na.omit(FACS.long.mln)
 names(FACS.long.mln)[names(FACS.long.mln) == "variable"] <- "pop"
 
-immuno.long <- merge(qPCR, ELISA_CEWE)
-immuno.long <- merge(immuno.long, FACS.long.mln)
+immuno.long <- merge(qPCR, ELISA_CEWE, all = T)
+immuno.long <- merge(immuno.long, FACS.long.mln, all =T)
 
 write.csv(immuno.long, "/Users/Luke Bednar/Mouse_Eimeria_Databasing/data/HZ19_immuno_long.csv")
 
