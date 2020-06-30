@@ -118,28 +118,28 @@ wild_immuno_delta <- distinct(wild_immuno_delta)
 immuno_delta <- rbind(lab_immuno_delta, wild_immuno_delta)
 immuno_delta <- distinct(immuno_delta)
 
-ggplot(immuno_delta, aes(x = Eim_MC, y = delta, color = Eim_MC)) +
+ggplot(subset(immuno_delta, !is.na(immuno_delta$delta)), aes(x = Eim_MC, y = delta, color = Eim_MC)) +
   geom_violin() +
-  facet_grid(~EXP_type) +
+  facet_grid(~EXP_type, drop = T) +
   geom_jitter(stat = "identity") +
   #stat_cor(method = "spearman", label.x =-5, label.y = 600) +
   #stat_regline_equation(label.x = -5, label.y = 500) + 
-  labs(y = "deltaCT = Mouse - Eimeria", x = "infection status") +
+  labs(y = "deltaCT = Mouse - Eimeria", x = "infection status", color = "infection status") +
   theme(axis.text=element_text(size=12, face = "bold"),
         title = element_text(size = 16, face = "bold"),
         axis.title=element_text(size=14,face="bold"),
         strip.text.x = element_text(size = 14, face = "bold"),
         strip.text.y = element_text(size = 14, face = "bold"),
-        legend.text=element_text(size=12, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("infection intensities in wild and lab mice")
 
 # graph out infection intensity effect on IFN-y abundance
-ggscatter(immuno, x = "delta", y = "IFNy", add = "reg.line", color = "EXP_type") +
-  facet_grid(EXP_type~Eim_MC, scales = "free")+
-  stat_cor(method = "spearman", label.x =-5, label.y = 600) +
-  stat_regline_equation(label.x = -5, label.y = 500) + 
-  labs(y = "IFN-y (pg/mL)", x = "deltaCT = Mouse - Eimeria") +
+ggscatter(subset(immuno, !is.na(immuno$delta)), x = "delta", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+  facet_grid(EXP_type~Eim_MC) +
+  stat_cor(method = "spearman", label.x =-8, label.y = 500) +
+  stat_regline_equation(label.x = -8, label.y = 400) + 
+  labs(y = "IFN-y (pg/mL)", x = "deltaCT = Mouse - Eimeria", color = "infection status", fill = "infection status") +
      theme(axis.text=element_text(size=12, face = "bold"),
           title = element_text(size = 16, face = "bold"),
           axis.title=element_text(size=14,face="bold"),
@@ -155,7 +155,7 @@ ggplot(subset(immuno, immuno$EXP_type == "wild"), aes(x = Eim_MC, y = counts, co
   geom_boxplot(outlier.shape=NA) + 
   geom_point(position=position_jitterdodge()) +
   facet_wrap(~pop, scales = "free_y") +
-  stat_compare_means(aes(label = ..p.signif..), size = 8, label.y.npc =0.95) +
+  stat_compare_means(method = "wilcox.test", aes(label = ..p.signif..), size = 8, label.y.npc =0.95) +
   ggtitle("wild mice cell counts")
 # same for lab mice
 # (CD4 down, Treg up, Th1 up, Div_Th1 up, Div_Th17 up, Act_CD8 up, Div_Act_CD8 up, IFNy_CD4 up, IFNy_CD8 up)
@@ -169,11 +169,11 @@ ggplot(distinct(subset(immuno, immuno$EXP_type == "lab")), aes(x = Eim_MC, y = c
 # now let's compare groups of interest between wild and lab
 # wild
 # IFNy CD4s vs infected/uninfected
-ggplot(distinct(subset(immuno, immuno$pop == "IFNy_CD4")), aes(x = EXP_type, y = counts, color = Eim_MC)) +
+ggplot(drop_na(distinct(subset(immuno, immuno$pop == "IFNy_CD4"))), aes(x = EXP_type, y = counts, color = Eim_MC)) +
   geom_boxplot(outlier.shape=NA) + 
   geom_point(position=position_jitterdodge()) +
   stat_compare_means(aes(label = ..p.signif..), size = 8, label.y.npc =0.95) +
-  labs(y = "cell counts %", x = "origin", color = "") +
+  labs(y = "cell counts %", x = "origin", color = "Eimeria") +
   theme(axis.text=element_text(size=12, face = "bold"),
         title = element_text(size = 16, face = "bold"),
         axis.title=element_text(size=14,face="bold"),
@@ -182,7 +182,7 @@ ggplot(distinct(subset(immuno, immuno$pop == "IFNy_CD4")), aes(x = EXP_type, y =
         legend.title = element_text(size = 12, face = "bold"))+
   ggtitle("IFN-y producing CD4+ cells")
 # IFNy CD8s vs infected/uninfected
-ggplot(distinct(subset(immuno, immuno$pop == "IFNy_CD8")), aes(x = EXP_type, y = counts, color = Eim_MC)) +
+ggplot(drop_na(distinct(subset(immuno, immuno$pop == "IFNy_CD8"))), aes(x = EXP_type, y = counts, color = Eim_MC)) +
   geom_boxplot(outlier.shape=NA) + 
   geom_point(position=position_jitterdodge()) +
   stat_compare_means(aes(label = ..p.signif..), size = 8, label.y.npc =0.95) +
@@ -199,9 +199,9 @@ ggplot(distinct(subset(immuno, immuno$pop == "IFNy_CD8")), aes(x = EXP_type, y =
 
 
 # IFN dependent behaviour of these cells wild
-ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+ggscatter(drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4")), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_wrap(~Eim_MC, scales = "free")+
-  stat_cor(label.x =-5, label.y = 600) +
+  stat_cor(method = "spearman",label.x =-5, label.y = 600) +
   stat_regline_equation(label.x = -5, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -213,9 +213,9 @@ ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"), x 
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("wild IFNy CD4 cell count effect on IFN-y abundance")
 
-ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+ggscatter(drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD8")), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_wrap(~Eim_MC, scales = "free")+
-  stat_cor(label.x =-5, label.y = 600) +
+  stat_cor(method = "spearman",label.x =-5, label.y = 600) +
   stat_regline_equation(label.x = -5, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -226,11 +226,73 @@ ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD8"), x 
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("wild IFNy CD8 cell count effect on IFN-y abundance")
+# Th1s
+ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "Th1"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+  facet_grid(~Eim_MC, scales = "free")+
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
+  stat_regline_equation(label.x = 0, label.y = 500) + 
+  labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("wild Th1 cell count effect on IFN-y abundance")
+# CD8s
+ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+  facet_grid(~Eim_MC, scales = "free")+
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
+  stat_regline_equation(label.x = 0, label.y = 500) + 
+  labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("wild CD8 cell count effect on IFN-y abundance")
+# Activated CD8s
+ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "Act_CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+  facet_grid(~Eim_MC, scales = "free")+
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
+  stat_regline_equation(label.x = 0, label.y = 500) + 
+  labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("wild activated CD8 cell count effect on IFN-y abundance")
+# Dividing Activated CD8s
+ggscatter(subset(wild_immuno_compare, wild_immuno_compare$pop == "Div_Act_CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+  facet_grid(~Eim_MC, scales = "free")+
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
+  stat_regline_equation(label.x = 0, label.y = 500) + 
+  labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("wild Dividing activated Cd8 cell count effect on IFN-y abundance")
+
+
+
+
+
 
 # IFN dependent behaviour of these cells lab
+# IFNy CD4s
 ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "IFNy_CD4"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_wrap(~Eim_MC)+
-  stat_cor(label.x =0, label.y = 600) +
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
   stat_regline_equation(label.x = 0, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -241,10 +303,10 @@ ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "IFNy_CD4"), x = 
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("lab IFNy CD4 cell count effect on IFN-y abundance")
-
+# IFNy CD8s
 ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "IFNy_CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_wrap(~Eim_MC, scales = "free")+
-  stat_cor(label.x =0, label.y = 600) +
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
   stat_regline_equation(label.x = 0, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -255,12 +317,10 @@ ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "IFNy_CD8"), x = 
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("lab IFNy CD8 cell count effect on IFN-y abundance")
-
-
-
+# TH1s
 ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "Th1"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_grid(~Eim_MC, scales = "free")+
-  stat_cor(label.x =0, label.y = 600) +
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
   stat_regline_equation(label.x = 0, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -271,10 +331,10 @@ ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "Th1"), x = "coun
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("lab Th1 cell count effect on IFN-y abundance")
-
+# Activated CD8s
 ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "Act_CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_grid(~Eim_MC, scales = "free")+
-  stat_cor(label.x =0, label.y = 600) +
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
   stat_regline_equation(label.x = 0, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -285,10 +345,10 @@ ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "Act_CD8"), x = "
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("lab Activated CD8 cell count effect on IFN-y abundance")
-
+# Dividing AActivated CD8s
 ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "Div_Act_CD8"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_grid(~Eim_MC, scales = "free")+
-  stat_cor(label.x =0, label.y = 600) +
+  stat_cor(method = "spearman",label.x =0, label.y = 600) +
   stat_regline_equation(label.x = 0, label.y = 500) + 
   labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
   theme(axis.text=element_text(size=12, face = "bold"),
@@ -304,7 +364,19 @@ ggscatter(subset(lab_immuno_compare, lab_immuno_compare$pop == "Div_Act_CD8"), x
 
 # delta dependent cell relationship
 
-
+ggscatter(subset(immuno, immuno$Eim_MC == "uninfected"), x = "counts", y = "IFNy", add = "reg.line", color = "Eim_MC") +
+  facet_grid(pop~EXP_type, scales = "free")+
+  stat_cor(method = "spearman",label.x =0, label.y = 450) +
+  stat_regline_equation(label.x = 0, label.y = 350) + 
+  labs(y = "IFN-y (pg/mL)", x = "cell counts %") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 8, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("")
 
 
 
