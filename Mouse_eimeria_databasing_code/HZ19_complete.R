@@ -23,6 +23,22 @@ ELISA_CEWE$X <- NULL
 FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Databasing/master/data/HZ19_MES_FACS.csv"))
 FACS$X <- NULL
 
+# check densities to set tests in explore completes right
+plot(density(FACS$CD4)) # normal
+plot(density(FACS$Treg)) # skewed
+plot(density(FACS$Div_Treg)) # normal
+plot(density(FACS$Treg17)) #skewed
+plot(density(FACS$Th1)) # skewed
+plot(density(FACS$Div_Th1)) # normal
+plot(density(FACS$Th17)) #skewed
+plot(density(FACS$Div_Th17)) # skewed
+plot(density(FACS$CD8)) # normal
+plot(density(FACS$Act_CD8)) # skewed
+plot(density(FACS$Div_Act_CD8)) # normal
+plot(density(FACS$IFNy_CD4)) # skewed
+plot(density(FACS$IL17A_CD4)) # skewed
+plot(density(FACS$IFNy_CD8)) # skewed
+
 
 immuno <- merge(qPCR, ELISA_CEWE, all = T)
 immuno <- merge(immuno, FACS, all = T)
