@@ -142,7 +142,7 @@ ggplot(subset(immuno_delta, !is.na(immuno_delta$delta)), aes(x = Eim_MC, y = del
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("infection intensities in wild and wild-derived mice")
 
-# graph out infection intensity effect on IFN-y abundance
+# graph out infection intensity effect on IFN-y abundance 
 summary(lm(formula = IFNy~counts, data = drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"&wild_immuno_compare$Eim_MC == "infected"))))
 # ggqqplot(immuno$delta, ylab = "delta")
 # ggqqplot(immuno$IFNy, ylab = "IFN")
@@ -172,12 +172,10 @@ uninfected_immuno <- subset(immuno, immuno$Eim_MC == "uninfected")
 uninfected_immuno <- distinct(uninfected_immuno)
 chart.Correlation(subset(distinct(uninfected_immuno[c(2,6,7)])))
 # finihs this at some point   
-ggplot(subset(immuno, !is.na(immuno$delta)), aes(x = delta, y = IFNy, color = Eim_MC, group = factor(EXP_type))) +
+ggplot(subset(immuno, !is.na(immuno$delta)), aes(x = delta, y = IFNy, colour = Eim_MC)) +
   facet_grid(EXP_type~Eim_MC) +
-  geom_jitter() +
-  stat_summary(fun.data=mean_cl_normal) + 
-  geom_smooth(method='lm', formula= y~x) + 
-  ylim(0,550)
+  stat_summary(fun=mean) + 
+  geom_smooth(method='lm')
 
   
 
@@ -185,7 +183,6 @@ ggplot(subset(immuno, !is.na(immuno$delta)), aes(x = delta, y = IFNy, color = Ei
 
 ggscatter(subset(immuno, !is.na(immuno$delta)), x = "delta", y = "IFNy", add = "reg.line", color = "Eim_MC") +
   facet_grid(EXP_type~Eim_MC) +
-  stat_cor(method = "spearman", label.x =-8, label.y = 400) +
   labs(y = "IFN-y (pg/mL)", x = "deltaCT = Mouse - Eimeria", color = "infection status", fill = "infection status") +
      theme(axis.text=element_text(size=12, face = "bold"),
           title = element_text(size = 16, face = "bold"),
