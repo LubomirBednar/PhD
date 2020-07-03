@@ -1,37 +1,33 @@
 #E7_112018_Eim_RT-qPCR
-library(httr)
 library(tidyverse)
-library(dplyr)
-library(Rmisc)
 library(RCurl)
 library(reshape2)
 library(ggpubr)
 library(ggplot2)
 library(naniar)
-library(tidyr)
 
 # load in raw tables
-RT1 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR1/E7_112018_Eim_RT-qPCR1.csv"
+RT1 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR1/E7_112018_Eim_RT-qPCR1.csv"
 RT1 <- read.csv(text = getURL(RT1))
 #remove LM_0231 because we have a repeat in RT6
 RT1 <- RT1[!grepl("LM_0231", RT1$Name),] 
 
-RT2 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR2/E7_RT-qPCR2.CSV"
+RT2 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR2/E7_RT-qPCR2.CSV"
 RT2 <- read.csv(text = getURL(RT2))
 
-RT3 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR3/E7_RT-qPCR3.CSV"
+RT3 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR3/E7_RT-qPCR3.CSV"
 RT3 <- read.csv(text = getURL(RT3))
 
-RT4 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR4/E7_112018_Eim_RT-qPCR4.CSV"
+RT4 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR4/E7_112018_Eim_RT-qPCR4.CSV"
 RT4 <- read.csv(text = getURL(RT4))
 
-RT5 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR5/E7_112018_Eim_RT-qPCR5.CSV"
+RT5 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR5/E7_112018_Eim_RT-qPCR5.CSV"
 RT5 <- read.csv(text = getURL(RT5))
 
-RT6 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR6/E7_RT-qPCR6.CSV"
+RT6 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR6/E7_RT-qPCR6.CSV"
 RT6 <- read.csv(text = getURL(RT6))
 
-RT7 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR7/E7_RT-qPCR7.CSV"
+RT7 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_RT-qPCRs/E7_RT-qPCR7/E7_RT-qPCR7.CSV"
 RT7 <- read.csv(text = getURL(RT7))
 
 # bind
@@ -89,7 +85,6 @@ ggplot(HKG, aes(x = Target, y = RT.Ct, color = Target)) +
         legend.title = element_blank()) +
   ggtitle("HKG differences E7")
 HKG$EXP <- "E7"
-write.csv(HKG, "C:/Users/Luke Bednar/Eimeria_Lab/data/3_recordingTables/HKG_E7.csv")
 
 # set ref and target genes
 refGenes <- c("RT.Ct.B-actin", "RT.Ct.GAPDH")
@@ -125,5 +120,6 @@ RT.wide$refMean <- NULL
 RT.wide <- filter(RT.wide)
 RT.wide <- distinct(RT.wide)
 # write
-write.csv(RT.wide, file = "../Eimeria_Lab/data/3_recordingTables/E7_112018_Eim_RT-qPCR_wide.csv")
-write.csv(RT.long, file = "../Eimeria_Lab/data/3_recordingTables/E7_112018_Eim_RT-qPCR_long.csv")
+write.csv(RT.wide, file = "../Eimeria_Lab/data/Experiment_results/E7_112018_Eim_CEWE_RT-qPCR.csv")
+# win write
+write.csv(RT.wide, "D:/Eimeria_Lab/data/Experiment_results/E7_112018_Eim_CEWE_RT-qPCR.csv")
