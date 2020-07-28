@@ -12,7 +12,7 @@ library(tidyverse)
 library(reshape2)
 
 #------------------------------ add and process RTqPCR data from GitHub-----------------------------------
-RTqPCRurl <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E1_012017_Eim_RT-qPCR_clean.csv"
+RTqPCRurl <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E1_012017_Eim_CEWE_RT-qPCR_clean.csv"
 RTqPCR <- read.csv(text = getURL(RTqPCRurl), sep = ",")
 #change colnames and misnamed rows to match standard
 names(RTqPCR)[names(RTqPCR) == "Sample"] <- "EH_ID"
@@ -28,7 +28,7 @@ RTqPCR = as.data.frame(RTqPCR)
 
 
 #------------------add and process design table---------------------------------------------------------
-InfectionURL <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/2_designTables/E1_012017_Eim_Experiment_Table_raw_NMRI.csv"
+InfectionURL <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E1_012017_Eim_DESIGN.csv"
 Infection.design <- read.csv(text = getURL(InfectionURL))
 #rename columns and merge
 names(Infection.design)[names(Infection.design) == "mouseID"] <- "EH_ID"
@@ -110,3 +110,4 @@ ggplot(Genes, aes(x = Target, y = Cq.Mean, color = Target)) +
 #dpi
 ggplot(Dpi, aes(x = dpi.diss, y = Cq.Mean, color = dpi.diss)) +
   geom_boxplot()
+
