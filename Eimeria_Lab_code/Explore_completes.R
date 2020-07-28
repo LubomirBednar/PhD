@@ -30,7 +30,7 @@ library(PerformanceAnalytics)
 # summary(lm(formula = IFNy~counts, data = drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"&wild_immuno_compare$Eim_MC == "infected"))))
 
 ###### 
-complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_E6_complete.csv"))
+complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_Eim_complete.csv"))
 # make negative MCs into NAs in a new column
 complete$delta_clean <- complete$delta
 complete <- mutate(complete, delta_clean = ifelse(Eim_MC == "neg", -30, delta_clean))
@@ -42,25 +42,24 @@ complete$Eimeria_p <- paste(gsub("E88|Eflab", replacement = "E.falciformis", com
 
 complete$Eimeria_c <- gsub("E64|E139", replacement = "E.ferrisi", complete$challenge)
 complete$Eimeria_c <- paste(gsub("E88|Eflab", replacement = "E.falciformis", complete$Eimeria_c))
-complete$EXP_type <- "lab"
 ########## start creating lab_immuno from complete to avoid NAs in wrong places
 ##### first delta then genes then FACS then para
 ### 1) delta
 lab_delta <- dplyr::select(complete, EH_ID, delta, delta_clean, Eim_MC, EXP_type, challenge)
 lab_delta <- dplyr::distinct(lab_delta)
-### 2) genes
-lab_genes <- dplyr::select(complete, EH_ID, CXCR3, IL.12, IRG6)
-lab_genes <- dplyr::distinct(lab_genes)
-#lab_genes <- subset(lab_genes, !is.na(lab_genes$CXCR3))
-# tranform into long
-lab_genes_long <- reshape2::melt(lab_genes,
-
-                        direction = "long",
-                        varying = list(names(lab_genes)[2:4]),
-                        v.names = "NE",
-                        na.rm = T, value.name = "NE", 
-                        id.vars = c("EH_ID"))
-names(lab_genes_long)[names(lab_genes_long) == "variable"] <- "Target"
+### 2) genes NONE ATM
+# lab_genes <- dplyr::select(complete, EH_ID, CXCR3, IL.12, IRG6)
+# lab_genes <- dplyr::distinct(lab_genes)
+# #lab_genes <- subset(lab_genes, !is.na(lab_genes$CXCR3))
+# # tranform into long
+# lab_genes_long <- reshape2::melt(lab_genes,
+# 
+#                         direction = "long",
+#                         varying = list(names(lab_genes)[2:4]),
+#                         v.names = "NE",
+#                         na.rm = T, value.name = "NE", 
+#                         id.vars = c("EH_ID"))
+# names(lab_genes_long)[names(lab_genes_long) == "variable"] <- "Target"
 ### 3) FACS
 lab_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_FACS.csv"))
 lab_FACS$X <- NULL
@@ -86,7 +85,7 @@ lab_ELISA_CEWE$label <- NULL
 
 ### finally join into lab_immuno
 
-lab_immuno <- merge(lab_genes_long, lab_delta)
+lab_immuno <- lab_delta
 lab_immuno <- subset(lab_immuno, !is.na(lab_immuno$delta))
 lab_immuno <- merge(lab_immuno, lab_FACS_long)
 lab_immuno <- merge(lab_immuno, lab_ELISA_CEWE)
@@ -105,7 +104,6 @@ lab_immuno_compare$Eim_MC[lab_immuno_compare$Eim_MC == "pos"] <- "infected"
 lab_immuno_compare$Eim_MC[lab_immuno_compare$Eim_MC == "neg"] <- "uninfected"
 wild_immuno_compare <- subset(wild_immuno_compare, !wild_immuno_compare$Mouse_ID == "AA_0791")
 lab_immuno_compare <- subset(lab_immuno_compare, !lab_immuno_compare$Mouse_ID == "LM_0294")
-lab_immuno_compare$EXP_type[lab_immuno_compare$EXP_type == "lab"] <- "wild-derived"
 
 immuno <- rbind(lab_immuno_compare, wild_immuno_compare)
 immuno <- subset(immuno, !immuno$pop == "Treg_prop")
@@ -125,6 +123,26 @@ immuno_delta <- distinct(immuno_delta)
 immuno_delta <- subset(immuno_delta, !immuno_delta$Mouse_ID == "LM_0294")
 immuno_delta <- subset(immuno_delta, !immuno_delta$Mouse_ID == "AA_0791")
 
+wild_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/HZ19_MES_FACS.csv"))
+wild_FACS$X <- NULL
+wild_ELISA_CEWE <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/HZ19_CEWE_ELISA.csv"))
+wild_ELISA_CEWE$X <- NULL
+wild_delta <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/Eimeria_detection/HZ19_CEWE_qPCR.csv"))
+wild_delta$X <- NULL
+
+wild <- merge(wild_FACS, wild_ELISA_CEWE)
+wild <- merge(wild, wild_delta)
+colnames(wild)[1] <- "EH_ID"
+colnames(wild)[17] <- "IFNy_CEWE"
+wild <- filter(wild, Position == "mLN")
+wild$Position <- NULL
+wild$Ct.Eimeria <- NULL
+wild$Ct.Mus <- NULL
+colnames(wild)[17] <- "Eim_MC"
+wild$Eim_MC[which(wild$Eim_MC == "FALSE")] <- "neg"
+wild$Eim_MC[which(wild$Eim_MC == "TRUE")] <- "pos"
+
+complete <- rbind.fill(complete, wild)
 # convert Eim_MC to factor otherwise ggplot complains
 immuno_delta$Eim_MC <- as.factor(immuno_delta$Eim_MC)
 ggplot(subset(immuno_delta, !is.na(immuno_delta$delta)), aes(x = Eim_MC, y = delta, color = Eim_MC)) +
@@ -141,6 +159,60 @@ ggplot(subset(immuno_delta, !is.na(immuno_delta$delta)), aes(x = Eim_MC, y = del
         legend.text = element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("infection intensities in wild and wild-derived mice")
+
+shapiro.test(complete$IFNy_CEWE)
+ggdensity(complete$IFNy_CEWE, 
+          main = "Density plot of tooth length",
+          xlab = "IFNy")
+shapiro.test(complete$delta)
+ggdensity(complete$delta, 
+          main = "Density plot of tooth length",
+          xlab = delta)
+
+pos <- dplyr::select(subset(complete, complete$Eim_MC == "pos"), IFNy_CEWE, delta)
+neg <- dplyr::select(subset(complete, complete$Eim_MC == "neg"), IFNy_CEWE, delta)
+
+IFNpos <- as.numeric(pos$IFNy_CEWE)
+IFNneg <- as.numeric(neg$IFNy_CEWE)
+
+deltapos <- as.numeric(pos$delta)
+deltaneg <- as.numeric(neg$delta)
+
+cor.test(IFNpos, deltapos, method = "kendall")
+cor.test(IFNneg, deltaneg, method = "kendall")
+
+ggscatter(subset(complete, complete$Eim_MC == "pos"), x = "IFNy_CEWE", y = "delta", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "kendall",
+          xlab = "IFN", ylab = "delta")
+
+ggscatter(subset(complete, complete$Eim_MC == "neg"), x = "IFNy_CEWE", y = "delta", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "kendall",
+          xlab = "IFN", ylab = "delta")
+
+
+
+ggplot(subset(complete, !complete$OPG == 0), aes(x = IFNy_CEWE, y = OPG, color = Eim_MC)) +
+  geom_point() +
+  facet_grid(Eim_MC~EXP_type, drop = T, scales = "free") +
+  labs(y = "deltaCT = Mouse - Eimeria", x = "infection status", color = "infection status") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("infection intensities in wild and wild-derived mice")
+
+
+
+
+
+
+
+
 
 # graph out infection intensity effect on IFN-y abundance 
 summary(lm(formula = IFNy~counts, data = drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"&wild_immuno_compare$Eim_MC == "infected"))))
