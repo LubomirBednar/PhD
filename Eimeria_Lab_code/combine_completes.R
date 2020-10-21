@@ -37,12 +37,13 @@ P3$EXP_type <- "CLS"
 colnames(E7)[2] <- "label"
 
 # add P4
-P4 <- read.csv(text = getURL(""))
-
-
-
+P4 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_COMPLETE.csv"))
+P4$X <- NULL
+# order columns for easier navigation
 P3 <- P3[,order(colnames(P3))]
 E7 <- E7[,order(colnames(E7))]
+P4 <- P4[,order(colnames(P4))]
+
 P3$AVG <- NULL
 P3$batch <- NULL
 E7$average <- NULL
@@ -64,11 +65,20 @@ P3$Strain <- "SWISS"
 colnames(P3)[7] <- "IFNy_CEWE"
 colnames(P3)[15] <- "Wchange"
 E7$IFNy <- NULL
+P4$batch <- NULL
+P4$EXP_type <- "CLS"
+P4$IFNy_CEWE <- NA
+P4$faeces_weight <- NULL
+P4$Strain <- "SWISS"
+colnames(P4)[13] <- "Wchange"
+P4 <- subset(P4, !is.na(P4$Eim_MC))
+P4$Eim_MC[P4$Eim_MC == "TRUE"] <- "pos"
+P4$Eim_MC[P4$Eim_MC == "FALSE"] <- "neg"
 
 complete <- rbind.fill(P3, E7)
+complete <- rbind.fill(complete, P4)
 
 
+write.csv(complete, "../GitHub/Eimeria_Lab/data/Experiment_results/E7_P3_P4_Eim_complete.csv")
 
-write.csv(complete, "./Eimeria_Lab/data/Experiment_results/E7_P3_Eim_complete.csv")
-
-write.csv(complete, "../Eimeria_Lab/data/Experiment_results/E7_P3_Eim_complete.csv")
+write.csv(complete, "../Eimeria_Lab/data/Experiment_results/E7_P3_P$_Eim_complete.csv")
