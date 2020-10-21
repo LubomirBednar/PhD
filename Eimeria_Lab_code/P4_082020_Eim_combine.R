@@ -9,15 +9,17 @@ library(httr)
 # add design P4a (add batch, amend labels)
 P4a_design <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P4a_082020_Eim_design.csv"))
 # add and clean oocyst P4a
-P4a_oocyst <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4a_082020_Eim_oocysts.csv"))
+P4a_oocyst <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4a_082020_Eim_oocysts1.csv"))
 # add and clean record P4a
 P4a_record <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4a_082020_Eim_Record.csv"))
+P4a_record$wloss <- as.numeric(as.character(P4a_record$wloss))
 # add design P4b
 P4b_design <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P4b_082020_Eim_design.csv"))
 # add and clean oocyst P4b
 P4b_oocyst <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4b_082020_Eim_oocysts.csv"))
 # add and clean record P4b
 P4b_record <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4b_082020_Eim_Record.csv"))
+P4b_record$wloss <- as.numeric(as.character(P4b_record$wloss))
 # add cleaned qPCR P4b
 P4b_qPCR <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_CEWE_qPCR.csv"))
 P4b_qPCR$dpi <- 8
@@ -42,7 +44,7 @@ P4a$batch <- "a"
 P4a$labels <- sub("^", "P4a", P4a$labels)
 
 # merge all into P4b and then P4
-P4b <- merge(P4b_design, P4b_oocyst, all = T) # MLZ twice but both 0
+P4b <- merge(P4b_design, P4b_oocyst, all = T)
 P4b <- merge(P4b, P4b_record, all = T)
 P4b <- merge(P4b, P4b_qPCR, all = T)
 P4b$batch <- "b"
@@ -59,4 +61,41 @@ P4$totalOocysts <- ((P4$oocyst_1
   2
 P4$OPG <- P4$totalOocysts/ P4$faeces_weight
 
+# replace !VALUE# with NAs
+P4$wloss[P4$wloss == "#VALUE!"] <- NA
+P4$day_change[P4$day_change == "#VALUE!"] <- NA
+# final clean to have same columns as P3:
+# label	EH_ID	IFNy_CEWE	delta	CXCR3	IL.12	IRG6	Eim_MC	AVG	totalOocysts	dpi	weight	
+# weight_dpi0	faeces_weight	wloss	batch	primary	challenge	infHistory	OPG	IFNy_FEC
+
+colnames(P4)[1] <- "label"
+P4$oocyst_1 <- NULL
+P4$oocyst_2 <- NULL
+P4$oocyst_3 <- NULL
+P4$oocyst_4 <- NULL
+P4$AVG <- NULL
+P4$day_change <- NULL
+
+write.csv(P4, "~/GitHub/Eimeria_Lab/data/Experiment_results/P4_082020_Eim_COMPLETE.csv")
+
+
+
+
+ggplot(subset(P4, !is.na(P4$Eim_MC)), aes(x = wloss, y = delta, color = Eim_MC)) +
+  geom_jitter() +
+  facet_wrap(~infHistory)
+
+ggplot(subset(P4, !is.na(P4$Eim_MC)), aes(x = dpi, y = OPG, color = challenge)) + 
+  geom_jitter() +
+  geom_smooth()
+
+ggplot(subset(P4, !is.na(P4$primary)), aes(x = dpi, y = OPG, color = primary))  +
+  geom_jitter(width = 0.2, size = 2) + 
+  geom_smooth(se = F) +
+  facet_wrap(~primary)
+
+ggplot(P4, aes(x = dpi, y = OPG, color = batch))  +
+  geom_jitter(width = 0.2, size = 2) + 
+  geom_smooth(se = F) +
+  facet_wrap(~infHistory)
 

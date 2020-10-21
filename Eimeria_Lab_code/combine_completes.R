@@ -36,6 +36,10 @@ P3 <- merge(P3, P3p)
 P3$EXP_type <- "CLS"
 colnames(E7)[2] <- "label"
 
+# add P4
+P4 <- read.csv(text = getURL(""))
+
+
 
 P3 <- P3[,order(colnames(P3))]
 E7 <- E7[,order(colnames(E7))]
