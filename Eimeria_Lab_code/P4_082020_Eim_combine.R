@@ -23,6 +23,10 @@ P4b_record$wloss <- as.numeric(as.character(P4b_record$wloss))
 # add cleaned qPCR P4b
 P4b_qPCR <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_CEWE_qPCR.csv"))
 P4b_qPCR$dpi <- 8
+# add P4b FACS
+P4b_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_FACS.csv"))
+P4b_FACS$dpi <- 8
+P4b_FACS$X <- NULL
 
 # make infection history
 P4ainf <- select(P4a_design, EH_ID, primary)
@@ -49,6 +53,7 @@ P4b <- merge(P4b, P4b_record, all = T)
 P4b <- merge(P4b, P4b_qPCR, all = T)
 P4b$batch <- "b"
 P4b$labels <- sub("^", "P4b", P4b$labels)
+P4b <- merge(P4b, P4b_FACS, all = T)
 # merge P4a and P4b
 P4 <- merge(P4a, P4b, all = T)
 
