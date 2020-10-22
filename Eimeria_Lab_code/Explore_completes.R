@@ -30,7 +30,7 @@ library(PerformanceAnalytics)
 # summary(lm(formula = IFNy~counts, data = drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"&wild_immuno_compare$Eim_MC == "infected"))))
 
 ###### 
-complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_Eim_complete.csv"))
+complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_P4_Eim_complete.csv"))
 # make negative MCs into NAs in a new column
 complete$delta_clean <- complete$delta
 complete <- mutate(complete, delta_clean = ifelse(Eim_MC == "neg", -30, delta_clean))
@@ -61,21 +61,31 @@ lab_delta <- dplyr::distinct(lab_delta)
 #                         id.vars = c("EH_ID"))
 # names(lab_genes_long)[names(lab_genes_long) == "variable"] <- "Target"
 ### 3) FACS
-lab_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_FACS.csv"))
-lab_FACS$X <- NULL
-lab_FACS <- dplyr::select(lab_FACS, EH_ID, infHistory, CD4, Treg, Div_Treg, Treg17, Treg_prop, Th1, Div_Th1,
+lab_FACS1 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_FACS.csv"))
+lab_FACS1$X <- NULL
+lab_FACS1 <- dplyr::select(lab_FACS1, EH_ID, infHistory, CD4, Treg, Div_Treg, Treg17, Treg_prop, Th1, Div_Th1,
                            Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IL17A_CD4, IFNy_CD8)
-lab_FACS <- dplyr::distinct(lab_FACS)
+lab_FACS1 <- dplyr::distinct(lab_FACS1)
+lab_FACS1$Position <- "mLN"
+
+lab_FACS2 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_FACS.csv"))
+lab_FACS2$X <- NULL
+lab_FACS2 <- dplyr::select(lab_FACS2, EH_ID, CD4, Treg, Div_Treg, Treg17, Th1, Div_Th1,
+                           Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8, Position)
+lab_FACS2 <- dplyr::distinct(lab_FACS2)
+
+lab_FACS <- full_join(lab_FACS1, lab_FACS2)
+
 # transform into long
 lab_FACS_long <- reshape2::melt(lab_FACS,
              direction = "long",
-             varying = list(names(lab_FACS)[19:34]),
+             varying = list(names(lab_FACS)[3:17]),
              v.names = "cell.pop",
              na.rm = T, value.name = "counts", 
-             id.vars = c("EH_ID", "infHistory"))
+             id.vars = c("EH_ID", "infHistory", "Position"))
 names(lab_FACS_long)[names(lab_FACS_long) == "variable"] <- "pop"
 # make a summary for comparing with wild (no Pos or Ant difference)
-lab_FACS_long <- lab_FACS_long %>% dplyr::group_by(EH_ID, pop, infHistory) %>% dplyr::summarise(counts = mean(counts, na.rm = T))
+lab_FACS_long <- lab_FACS_long %>% dplyr::group_by(EH_ID, pop, Position) %>% dplyr::summarise(counts = mean(counts, na.rm = T))
 # write.csv(lab_FACS_long, "~/Eimeria_Lab/data/3_recordingTables/E7_112018_Eim_lab_FACS_long.csv")
 
 # IFNy data ELISA

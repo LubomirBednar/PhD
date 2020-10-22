@@ -34,5 +34,13 @@ colnames(FACS)[15]<- "IFNy_CD8"
 FACS[] <- lapply(FACS, gsub, pattern='%', replacement='')
 FACS[, 3:15] <- sapply(FACS[, 3:15], as.numeric)
 FACS$Position <- as.factor(FACS$Position)
+# add labels and dpi reference columns
+design <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P4b_082020_Eim_design.csv"))
+design <- subset(design, design$dpi == 8)
+FACS <- merge(FACS, design)
+colnames(FACS)[17] <- "label"
+FACS$label <- sub("^", "P4b", FACS$label)
+
+
 # write out 
 write.csv(FACS, "~/GitHub/Eimeria_Lab/data/Experiment_results/P4_082020_Eim_FACS.csv")

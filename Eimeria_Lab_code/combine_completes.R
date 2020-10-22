@@ -70,7 +70,7 @@ P4$EXP_type <- "CLS"
 P4$IFNy_CEWE <- NA
 P4$faeces_weight <- NULL
 P4$Strain <- "SWISS"
-colnames(P4)[13] <- "Wchange"
+colnames(P4)[27] <- "Wchange"
 P4 <- subset(P4, !is.na(P4$Eim_MC))
 P4$Eim_MC[P4$Eim_MC == "TRUE"] <- "pos"
 P4$Eim_MC[P4$Eim_MC == "FALSE"] <- "neg"
