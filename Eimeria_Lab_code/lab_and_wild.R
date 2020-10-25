@@ -36,6 +36,24 @@ long$EXP_type[long$strain_type == "WDS"] <- "lab"
 long$EXP_type[long$strain_type == "wild"] <- "wild"
 
 # start graphing
+# delta by itself
+long_delta <- dplyr::select(long, EH_ID, delta, Eim_MC, EXP_type)
+long_delta <- distinct(long_delta)
+ggplot((subset(long_delta, !is.na(long_delta$delta))), aes(x = Eim_MC, y = delta, color = Eim_MC)) +
+  geom_violin() +
+  facet_grid(~EXP_type, drop = T) +
+  geom_jitter(stat = "identity") +
+  stat_compare_means(method = "wilcox.test", aes(label = ..p.signif..), label.x = 1.5, label.y = 5, comparisons = list(c("infected", "uninfected"))) +
+  labs(y = "deltaCT = Mouse - Eimeria", x = "infection status", color = "infection status") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("infection intensities in wild and wild-derived mice")
+
 # infection(delta) dependent IFNy increase
 ggscatter(subset(long, !is.na(long$delta)), x = "delta", y = "IFNy_CEWE", add = "reg.line", color = "Eim_MC") +
   facet_grid(EXP_type~Eim_MC) +
