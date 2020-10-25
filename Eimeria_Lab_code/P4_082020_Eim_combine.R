@@ -27,11 +27,15 @@ P4b_qPCR$dpi <- 8
 P4b_FACS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_FACS.csv"))
 P4b_FACS$dpi <- 8
 P4b_FACS$X <- NULL
+# add P4b ELISA
+P4b_ELISA <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_ELISA.csv"))
+P4b_ELISA$X <- NULL
+P4b_ELISA$dpi <- 8
 
 # make infection history
-P4ainf <- select(P4a_design, EH_ID, primary)
+P4ainf <- dplyr::select(P4a_design, EH_ID, primary)
 P4ainf <- distinct(P4ainf)
-P4binf <- select(P4b_design, EH_ID, challenge)
+P4binf <- dplyr::select(P4b_design, EH_ID, challenge)
 P4binf <- distinct(P4binf)
 P4_inf <- merge(P4ainf, P4binf)
 P4_inf$infHistory <- paste(P4_inf$primary, P4_inf$challenge, sep =  ":")
@@ -54,6 +58,7 @@ P4b <- merge(P4b, P4b_qPCR, all = T)
 P4b$batch <- "b"
 P4b$labels <- sub("^", "P4b", P4b$labels)
 P4b <- merge(P4b, P4b_FACS, all = T)
+P4b <- merge(P4b, P4b_ELISA, all = T)
 # merge P4a and P4b
 P4 <- merge(P4a, P4b, all = T)
 
@@ -80,6 +85,7 @@ P4$oocyst_3 <- NULL
 P4$oocyst_4 <- NULL
 P4$AVG <- NULL
 P4$day_change <- NULL
+P4[29] <- NULL
 
 write.csv(P4, "~/GitHub/Eimeria_Lab/data/Experiment_results/P4_082020_Eim_COMPLETE.csv")
 

@@ -217,13 +217,6 @@ ggplot(subset(complete, !complete$OPG == 0), aes(x = IFNy_CEWE, y = OPG, color =
   ggtitle("infection intensities in wild and wild-derived mice")
 
 
-
-
-
-
-
-
-
 # graph out infection intensity effect on IFN-y abundance 
 summary(lm(formula = IFNy~counts, data = drop_na(subset(wild_immuno_compare, wild_immuno_compare$pop == "IFNy_CD4"&wild_immuno_compare$Eim_MC == "infected"))))
 # ggqqplot(immuno$delta, ylab = "delta")
