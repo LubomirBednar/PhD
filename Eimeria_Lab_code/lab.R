@@ -17,7 +17,7 @@ E7$X <- NULL
 # unify columns by renaming and selecting
 ### remake with underscores for clarity
 colnames(P3)[10] <- "total_oocysts"
-colnames(P4)[31] <- "total_oocysts"
+colnames(P4)[30] <- "total_oocysts"
 colnames(E7)[21] <- "total_oocysts"
 colnames(P3)[19] <- "infection_history"
 colnames(P4)[4] <- "infection_history"
@@ -43,8 +43,8 @@ P4 <- dplyr::select(P4, EH_ID, dpi, label, delta, IFNy_CEWE, Eim_MC, total_oocys
 E7 <- dplyr::select(E7, EH_ID, dpi, label, delta, IFNy_CEWE, Eim_MC, total_oocysts, infection_history, weight_change, 
              primary, challenge, OPG, IFNy_CEWE, Strain, EXP_type)
 
-lab <- merge(P3, P4, all = T)
-lab <- merge(lab, E7, all = T)
+lab <- rbind(P3, P4)
+lab <- rbind(lab, E7)
 
 write.csv(lab, "~/GitHub/Eimeria_Lab/data/Experiment_results/Lab_COMPLETE.csv")
 # add FACS data
