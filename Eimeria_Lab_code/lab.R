@@ -11,20 +11,25 @@ P3 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_L
 P3$X <- NULL
 P4 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_COMPLETE.csv"))
 P4$X <- NULL
+P4$experiment <- "P4"
 E7 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_COMPLETE.csv"))
 E7$X <- NULL
+E7$experiment <- "E7"
 # E10 coming soon
 # unify columns by renaming and selecting
 ### remake with underscores for clarity
 colnames(P3)[10] <- "total_oocysts"
 colnames(P4)[30] <- "total_oocysts"
 colnames(E7)[21] <- "total_oocysts"
+
 colnames(P3)[19] <- "infection_history"
 colnames(P4)[4] <- "infection_history"
 colnames(E7)[3] <- "infection_history"
+
 colnames(P3)[15] <- "weight_change"
 colnames(P4)[8] <- "weight_change"
 colnames(E7)[11] <- "weight_change"
+
 colnames(E7)[1] <- "label"
 ### add strain to P3 and P4 + other necessary columns for later
 P3$Strain <- "SWISS"
@@ -150,5 +155,36 @@ ggplot(lab_FACS_long, aes(x = Eim_MC, y = counts, color = Eim_MC)) +
   stat_compare_means(method = "wilcox.test", aes(label = ..p.signif..), size = 6, label.y.npc =0.95) +
   ggtitle("Lab mice cell counts")
 
+# combine completes
+# order columns for easier navigation
+P3 <- P3[,order(colnames(P3))]
+E7 <- E7[,order(colnames(E7))]
+P4 <- P4[,order(colnames(P4))]
 
+P3$AVG <- NULL
+P3$batch <- NULL
+E7$average <- NULL
+colnames(E7)[1] <- "Eim_MC"
+E7$comment <- NULL
+E7$CXCR3 <- NULL
+E7$IRG6 <- NULL
+E7$IFNy_FEC <- NULL
+E7$IL.12 <- NULL
+E7$label.1 <- NULL
+E7$oocyst_1 <- NULL
+E7$oocyst_2 <- NULL
+E7$oocyst_3 <- NULL
+E7$oocyst_4 <- NULL
+E7$volume_PBS_mL <- NULL
+P3$faeces_weight <- NULL
+E7$fecweight <- NULL
+P3$Strain <- "SWISS"
+E7$IFNy <- NULL
+P4$batch <- NULL
+P4$EXP_type <- "CLS"
+P4$faeces_weight <- NULL
+P4$Strain <- "SWISS"
+P4 <- subset(P4, !is.na(P4$Eim_MC))
+
+complete <- rbind.fill(P3, P4)
 
