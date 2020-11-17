@@ -188,3 +188,13 @@ P4 <- subset(P4, !is.na(P4$Eim_MC))
 
 complete <- rbind.fill(P3, P4)
 
+
+ggplot(subset(lab, !is.na(lab$challenge) & lab$OPG > 0), aes(x = infection_history, y = OPG, color = infection_history)) + 
+  geom_boxplot() + 
+  geom_jitter()
+
+
+  summarize(mean_size = mean(OPG, na.rm = TRUE))
+
+ggplot(OPG, aes(x = infection_history, y = mean_size, color = infection_history)) + 
+  geom_boxplot()
