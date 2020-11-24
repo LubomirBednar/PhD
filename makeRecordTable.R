@@ -15,12 +15,12 @@ makeRecordTable <- function(designTable, myseed, ndays = 12){
   #                          dilution = "",
   #                          OPG = "")
   recordTable = data.frame(EH_ID = rep(designTable$EH_ID, 12),
-                           dpi = rep(c(0,2,4,7,9,11,14,16,18,21,23,25), each=nrow(designTable)),
+                           dpi = rep(c(1,2,3,4,5,6,7,8,9,10,11,12), each=nrow(designTable)),
                            weight = "",
                            weight_dpi0 = "",
                            weightloss = "",
-                           weightRelativeToInfection = "",
-                           fecweight = "",
+                           relative_weight = "",
+                           feces_weight = "",
                            oocyst_sq1 = "",
                            oocyst_sq2 = "",
                            oocyst_sq3 = "",
@@ -28,14 +28,14 @@ makeRecordTable <- function(designTable, myseed, ndays = 12){
                            oocyst_mean = "",
                            dilution = "",
                            OPG = "")
-  labels = sample(combn(LETTERS, 2, paste, collapse = ""), nrow(recordTable))
-  #recordTable$labels = labels
+  labels = sample(combn(LETTERS, 3, paste, collapse = ""), nrow(recordTable))
+  recordTable$labels = labels
   recordTable = cbind(labels = labels, recordTable)
   return(recordTable)
 }
 
-designTableExpe009 <- read.csv("../data/2_designTables/Exp009_CRYPTO_design.csv")
-recordTableExpe009 <- makeRecordTable(designTableExpe009, 1234, ndays = 26)
+designTable <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E7_112018_Eim_DESIGN.csv")
+recordTableExpe009 <- makeRecordTable(designTable, myseed = 1234, ndays = 12)
 # write.csv(recordTableExpe009, "../data/3_recordingTables/Exp009_CRYPTO.csv",
 #           row.names = F, quote = F)
 # designTableExpe008 <- read.csv("../data/2_designTables/Exp008_NMRI_DESIGN_jan2019.csv")
