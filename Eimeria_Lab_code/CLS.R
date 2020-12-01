@@ -11,7 +11,7 @@ P3$X <- NULL
 P4 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_COMPLETE.csv"))
 P4$X <- NULL
 P4$experiment <- "P4"
-P4$label.1 <- NULL
+P4$labels.1 <- NULL
 # unify columns by renaming and selecting
 ### remake with underscores for clarity
 colnames(P3)[10] <- "total_oocysts"
@@ -20,8 +20,10 @@ colnames(P4)[29] <- "total_oocysts"
 colnames(P3)[19] <- "infection_history"
 colnames(P4)[4] <- "infection_history"
 
-colnames(P3)[15] <- "weight_change"
-colnames(P4)[8] <- "weight_change"
+colnames(P3)[15] <- "relative_weight"
+colnames(P4)[8] <- "relative_weight"
+
+colnames(P3)[2] <- "labels"
 ### add strain to P3 and P4 + other necessary columns for later
 P3$Strain <- "SWISS"
 P4$Strain <- "SWISS"
