@@ -86,7 +86,7 @@ P4$dilution <- 1
 write.csv(P4, "~/GitHub/Eimeria_Lab/data/Experiment_results/P4_082020_Eim_COMPLETE.csv")
 P4o <- select(P4, labels, experiment, oocyst_sq1, oocyst_sq2, oocyst_sq3, oocyst_sq4, oocyst_mean, OPG, dilution)
 write.csv(P4o, "~/GitHub/Eimeria_Lab/data/Experiment_results/P4_082020_Eim_oocyst.csv")
-P4w <- select(P4, labels, experiment, weight, weight_dpi0, relative_weight, feces_weight, dpi)
+P4w <- select(P4, EH_ID, labels, experiment, weight, weight_dpi0, relative_weight, feces_weight, dpi)
 write.csv(P4w, "~/GitHub/Eimeria_Lab/data/Experiment_results/P4_082020_Eim_record.csv")
 
 ggplot(subset(P4, !is.na(P4$Eim_MC)), aes(x = wloss, y = delta, color = Eim_MC)) +

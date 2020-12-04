@@ -12,18 +12,12 @@ P4 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_L
 P4$X <- NULL
 P4$experiment <- "P4"
 P4$labels.1 <- NULL
+P4$label <- NULL
 # unify columns by renaming and selecting
 ### remake with underscores for clarity
-colnames(P3)[10] <- "total_oocysts"
-colnames(P4)[29] <- "total_oocysts"
-
-colnames(P3)[19] <- "infection_history"
+colnames(P3)[18] <- "infection_history"
 colnames(P4)[4] <- "infection_history"
 
-colnames(P3)[15] <- "relative_weight"
-colnames(P4)[8] <- "relative_weight"
-
-colnames(P3)[2] <- "labels"
 ### add strain to P3 and P4 + other necessary columns for later
 P3$Strain <- "SWISS"
 P4$Strain <- "SWISS"
@@ -61,12 +55,13 @@ ggplot(subset(CLS, CLS$OPG > 0 & !is.na(CLS$primary)), aes(Eimeria1, OPG, color 
   geom_boxplot() +
   geom_jitter()
 
-ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = weight_change, color = Eimeria1)) + 
+ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = relative_weight, color = Eimeria1)) + 
   geom_smooth() + 
   geom_jitter() + 
-  facet_wrap(~Eimeria1)
+  facet_wrap(~Eimeria1) +
+  ylim(82, 110)
 
-ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = weight_change, color = primary)) + 
+ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = relative_weight, color = primary)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~primary) + 
@@ -82,11 +77,11 @@ ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = weight_change, colo
   geom_jitter() + 
   facet_wrap(~Eimeria2)
 
-ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = weight_change, color = challenge)) + 
+ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = relative_weight, color = challenge)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~challenge) + 
-  ylim(70, 110)
+  ylim(82, 110)
 
 # batches
 ggplot(subset(CLS, CLS$OPG > 0), aes(x = dpi, y = OPG, color = batch)) +

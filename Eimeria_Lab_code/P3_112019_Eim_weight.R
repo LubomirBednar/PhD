@@ -132,7 +132,7 @@ P3_record_full$experiment <- "P3"
 write.csv(P3_record_full, "~/GitHub/Eimeria_Lab/data/Experiment_results/P3_112019_Eim_complete.csv")
 P3o <- select(P3_record_full, labels, experiment, oocyst_sq1, oocyst_sq2, oocyst_sq3, oocyst_sq4, oocyst_mean, OPG, dilution)
 write.csv(P3o, "~/GitHub/Eimeria_Lab/data/Experiment_results/P3_112019_Eim_oocyst.csv")
-P3r <- select(P3_record_full, experiment, labels, weight, weight_dpi0, relative_weight, feces_weight, dpi)
+P3r <- select(P3_record_full, EH_ID, experiment, labels, weight, weight_dpi0, relative_weight, feces_weight, dpi)
 write.csv(P3r, "~/GitHub/Eimeria_Lab/data/Experiment_results/P3_112019_Eim_record.csv")
 
 ggplot(P3a, aes(x = dpi, y = N.oocyst)) +
