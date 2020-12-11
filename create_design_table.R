@@ -4,7 +4,7 @@ library(RCurl)
 # load in initial dataset from GitHub (must be raw.)
 infoTable = read.csv(text = getURL("desired info dataset"))
 # check last experiment and get highest EH_ID
-lastEH_ID <- "last sued EH_ID"
+lastEH_ID <- "last used EH_ID"
 # divide dataset into groups as desired
 ## e.g.: 100 mice would divide into c(rep("isolate1", 25), rep("isolate2", 25), 
 ##                                  rep("isolate3", 25), rep("uninfected", 25))
