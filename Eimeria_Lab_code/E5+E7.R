@@ -8,14 +8,13 @@ library(dplyr)
 library(Hmisc)
 library(data.table)
 
-E7 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E7_112018_Eim_complete.csv"
+E7 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_COMPLETE.csv"
 E7 <- read.csv(text = getURL(E7))
-E7$EH_ID <- sub("0", "_0", E7$EH_ID)
 E7$X <- NULL
 
 
-E5 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/E6_062018_Eim_complete(Wchange).csv"
-E5 <- read.csv(text = getURL(E5))
+E5 <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E6_062018_Eim_complete.csv"
+E5 <- read.csv(text = getURL(E5), sep = ";")
 E5 <- select(E5, EH_ID, labels, Expe, dilution_ml, OPG, dpi, weight, weight_dpi0, Wchange, fecweight, Eimeria, Strain, HybridStatus)
 # rename columns to match (EH_ID, labels, Expe, dilution_ml, OPG, dpi, weight, weight_dpi0, Wchange, fecweight, Eimeria, 
 # Strain, Hybridstatus) + keep only mice that went into reinfection

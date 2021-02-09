@@ -9,13 +9,13 @@ library(tidyr)
 
 # load in raw data (big mistake, at least one sample has duplicate label across batches. 
 # (Physical samples are separated howevers so only needs fixing here)
-P3a_record <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/P3a_112019_Eim_Record.csv"
+P3a_record <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3a_112019_Eim_Record.csv"
 P3a_record <- read.csv(text = getURL(P3a_record))
 P3a_record$batch <- "a"
 P3a_record$day_change <- NULL
 P3a_record$labels <- sub("^", "P3a", P3a_record$labels)
 
-P3b_record <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/P3b_112019_Eim_Record.csv"
+P3b_record <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3b_112019_Eim_Record.csv"
 P3b_record <- read.csv(text = getURL(P3b_record))
 P3b_record$X <- NULL
 P3b_record$batch <- "b"
@@ -23,7 +23,7 @@ P3b_record$day_change <- NULL
 P3b_record$labels <- sub("^", "P3b", P3b_record$labels)
 
 # load in design
-P3_design <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/2_designTables/P3_112019_Eim_design.csv"
+P3_design <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P3_112019_Eim_design.csv"
 P3_design <- read.csv(text = getURL(P3_design))
 P3_design <- dplyr::select(P3_design, EH_ID, primary, challenge)
 P3_design <- unique(P3_design)
@@ -33,9 +33,11 @@ P3_design$infHistory <- paste(P3_design$primary, P3_design$challenge, sep =  ":"
 # merge to acquire infection history (also fix any num/factor class discrepancies and data frame columns)
 P3a_record <- merge(P3a_record, P3_design, by = "EH_ID", all = T)
 P3b_record <- merge(P3b_record, P3_design, by = "EH_ID", all = T)
+P3a_record$challenge <- NA
+P3b_record$primary <- NA
 
 # graph to see overall state
-ggplot(P3a_record, aes(x = dpi, y = wloss)) +
+ggplot(P3a_record, aes(x = dpi, y = relative_weight)) +
   geom_point() +
   geom_smooth() + 
   facet_wrap("primary") +
@@ -68,13 +70,11 @@ ggplot(P3b_record, aes(x = dpi, y = wloss)) +
         legend.title = element_text(size = 12, face = "bold"))+
   ggtitle("P3 weightloss infhist")
 # add oocyst data
-oocysts <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/3_recordingTables/P3_112019_Eim_oocysts.csv"
+oocysts <- "https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_oocysts.csv"
 oocysts <- read.csv(text = getURL(oocysts))
 oocysts$X <- NULL 
 oocysts <- oocysts[-c(1), ]
 # make overall table with labels + delete primary for P3b and challenge for P3a
-P3a_record$challenge <- NA
-P3b_record$primary <- NA
 P3_record <- rbind(P3a_record, P3b_record)
 
 
@@ -98,15 +98,21 @@ P3_record <- rbind(P3a_record, P3b_record)
 #   infHistory == "E64:UNI" ~ "Efer",
 #   
 #   infHistory == "UNI:UNI" ~ "uni"))
-oocysts$totalOocysts <- ((oocysts$oocyst_1 
+oocysts$total_oocysts <- ((oocysts$oocyst_1 
                              + oocysts$oocyst_2 
                              + oocysts$oocyst_3 
                              + oocysts$oocyst_4) / 4) * 
   10000 * # because volume chamber
   2
+colnames(oocysts)[6] <- "oocyst_mean"
 
+oocysts <- select(oocysts, labels, oocyst_mean, total_oocysts, oocyst_1, oocyst_2, oocyst_3, oocyst_4)
+oocysts$dilution <- 1
+colnames(oocysts)[4] <- "oocyst_sq1"
+colnames(oocysts)[5] <- "oocyst_sq2"
+colnames(oocysts)[6] <- "oocyst_sq3"
+colnames(oocysts)[7] <- "oocyst_sq4"
 
-oocysts <- select(oocysts, labels, AVG, totalOocysts)
 # write this beuty out
 P3_record_full <- merge(P3_record, oocysts, by = "labels", all = T)
 
@@ -117,14 +123,17 @@ P3_record_full <- merge(P3_record, oocysts, by = "labels", all = T)
 #P3a$OPG <- P3a$totalOocysts / P3a$faeces_weight
 P3_record_full <- merge(oocysts, P3_record_full, all =T)
 
-P3_record_full$OPG <- P3_record_full$totalOocysts/ P3_record_full$faeces_weight
+P3_record_full$OPG <- P3_record_full$total_oocysts/ P3_record_full$feces_weight
 
 P3_record_full <- P3_record_full[-c(1), ]
+P3_record_full$experiment <- "P3"
 
-
-write.csv(P3_record_full, "./Eimeria_Lab/data/3_recordingTables/P3_112019_Eim_Weight&Oocyst_complete.csv")
-
-
+#make standard oocyst and record tables + complete
+write.csv(P3_record_full, "~/GitHub/Eimeria_Lab/data/Experiment_results/P3_112019_Eim_complete.csv")
+P3o <- select(P3_record_full, labels, experiment, oocyst_sq1, oocyst_sq2, oocyst_sq3, oocyst_sq4, oocyst_mean, OPG, dilution)
+write.csv(P3o, "~/GitHub/Eimeria_Lab/data/Experiment_results/P3_112019_Eim_oocyst.csv")
+P3r <- select(P3_record_full, EH_ID, experiment, labels, weight, weight_dpi0, relative_weight, feces_weight, dpi)
+write.csv(P3r, "~/GitHub/Eimeria_Lab/data/Experiment_results/P3_112019_Eim_record.csv")
 
 ggplot(P3a, aes(x = dpi, y = N.oocyst)) +
   geom_point() +
