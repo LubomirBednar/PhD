@@ -1,6 +1,8 @@
 library(dplyr)
 library(ggplot2)
 
+# Read in, set names as characters for later changes and average replicates 
+efficiencies <- read.csv("./E1_RT-qPCRs/efficiencies.csv")
 
 CDC_1 <- read.csv("./E1_RT-qPCRs/runs_select/CDC24_1.csv")
 CDC_1$Sample <- as.character(CDC_1$Sample)
@@ -134,6 +136,40 @@ names(RT.wide)[names(RT.wide) == "Cq.TGF-b"] <- "TGFb"
 # set ref and target genes
 refGenes <- c("Ppia", "Ppib", "CDC24")
 targetGenes <- c("CXCL9", "IFNy", "IL10", "IL12", "IL6", "STAT6", "TGFb")
+# ### add primer efficiency
+# CDC_eff <- 100.2^subset(E1.wide, E1.wide)
+# 
+# CE.eff <-  eff.factor^(CE.wide[, c(refGenes, targetGenes)] * -1)
+# 
+# normIDX <- apply(CE.eff[, refGenes], 1, prod)^
+#   (1/length(refGenes))
+# 
+# CE.norm <- CE.eff[, targetGenes] / normIDX
+# 
+# names(CE.norm) <- gsub("CqM", "NE", names(CE.norm))
+# 
+# ## fix some very odd outlier numbers
+# CE.norm[CE.norm > 1] <- NA
+# 
+# ## dropping everything but IDs and normalized values... look into SDs,
+# ## non-normalized etc... if needed!!
+# CE.norm <- cbind(EH_ID=CE.wide[, "EH_ID"], CE.norm)
+# 
+# ## too lazy to write this more concisely...
+# CE.long <- reshape(CE.norm,
+#                    direction = "long",
+#                    idvar = "EH_ID", ids = EH_ID,
+#                    varying = list(grep("^NE\\.", colnames(CE.norm))),
+#                    times = grep("^NE\\.", colnames(CE.norm), value=TRUE))
+# 
+# ## too confused to write this concisely
+# rownames(CE.long) <- NULL
+# CE.long$time <-  gsub("NE\\.", "", CE.long$time)
+# names(CE.long) <- c("EH_ID", "Gene", "NE")
+# 
+# CE.final <- merge(CE.long, stab, all.y=TRUE)
+
+
 # calculate ref genes in new column and subtract targets from HKG average, create new columns
 require(dplyr)
 RT.wide <- RT.wide %>% mutate(refMean = rowMeans(na.rm = TRUE, dplyr::select(RT.wide, refGenes)))
