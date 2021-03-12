@@ -6,29 +6,61 @@ efficiencies <- read.csv("./E1_RT-qPCRs/efficiencies.csv")
 
 CDC_1 <- read.csv("./E1_RT-qPCRs/runs_select/CDC24_1.csv")
 CDC_1$Sample <- as.character(CDC_1$Sample)
-CDC_1 <- CDC_1 %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
+
+CDC_2 <- read.csv("./E1_RT-qPCRs/runs_select/CDC24_2.csv")
+CDC_2$Sample <- as.character(CDC_2$Sample)
+
+CDC <- rbind(CDC_1, CDC_2)
+
+CDC <- CDC %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
+rm(CDC_1, CDC_2)
 ###################################################################################################
 CXCL_1 <- read.csv("./E1_RT-qPCRs/runs_select/CXCL9_1.csv")
 CXCL_1$Sample <- as.character(CXCL_1$Sample)
 
 CXCL_2 <- read.csv("./E1_RT-qPCRs/runs_select/CXCL9_2.csv")
 CXCL_2$Sample <- as.character(CXCL_2$Sample)
+
+CXCL_3 <- read.csv("./E1_RT-qPCRs/runs_select/CXCL9_3.csv")
+CXCL_3$Sample <- as.character(CXCL_3$Sample)
+
 CXCL <- rbind(CXCL_1, CXCL_2)
+CXCL <- rbind(CXCL, CXCL_3)
+
 CXCL <- CXCL %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(CXCL_1, CXCL_2)
+rm(CXCL_1, CXCL_2, CXCL_3)
 ###################################################################################################
-IFN <- read.csv("./E1_RT-qPCRs/runs_select/IFN3_1.csv")
-IFN$Sample <- as.character(IFN$Sample)
+IFN_1 <- read.csv("./E1_RT-qPCRs/runs_select/IFN3_1.csv")
+IFN_1$Sample <- as.character(IFN_1$Sample)
+
+IFN_2 <- read.csv("./E1_RT-qPCRs/runs_select/IFN3_2.csv")
+IFN_2$Sample <- as.character(IFN_2$Sample)
+
+IFN_3 <- read.csv("./E1_RT-qPCRs/runs_select/IFN3_3.csv")
+IFN_3$Sample <- as.character(IFN_3$Sample)
+
+IFN <- rbind(IFN_1, IFN_2)
+IFN <- rbind(IFN, IFN_3)
 IFN <- IFN %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
+rm(IFN_1, IFN_2, IFN_3)
 ###################################################################################################
 IL10_1 <- read.csv("./E1_RT-qPCRs/runs_select/IL10_1.csv")
 IL10_1$Sample <- as.character(IL10_1$Sample)
 
 IL10_2 <- read.csv("./E1_RT-qPCRs/runs_select/IL10_2.csv")
 IL10_2$Sample <- as.character(IL10_2$Sample)
+
+IL10_3 <- read.csv("./E1_RT-qPCRs/runs_select/IL10_3.csv")
+IL10_3$Sample <- as.character(IL10_3$Sample)
+
+IL10_4 <- read.csv("./E1_RT-qPCRs/runs_select/IL10_4.csv")
+IL10_4$Sample <- as.character(IL10_4$Sample)
+
 IL10 <- rbind(IL10_1, IL10_2)
+IL10 <- rbind(IL10, IL10_3)
+IL10 <- rbind(IL10, IL10_4)
 IL10 <- IL10 %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(IL10_1, IL10_2)
+rm(IL10_1, IL10_2, IL10_3, IL10_4)
 ###################################################################################################
 IL12_1 <- read.csv("./E1_RT-qPCRs/runs_select/IL12_1.csv")
 IL12_1$Sample <- as.character(IL12_1$Sample)
@@ -38,10 +70,24 @@ IL12_2$Sample <- as.character(IL12_2$Sample)
 
 IL12_3 <- read.csv("./E1_RT-qPCRs/runs_select/IL12_3.csv")
 IL12_3$Sample <- as.character(IL12_3$Sample)
+
+IL12_4 <- read.csv("./E1_RT-qPCRs/runs_select/IL12_4.csv")
+IL12_4$Sample <- as.character(IL12_4$Sample)
+
+IL12_5 <- read.csv("./E1_RT-qPCRs/runs_select/IL12_5.csv")
+IL12_5$Sample <- as.character(IL12_5$Sample)
+
+IL12_6 <- read.csv("./E1_RT-qPCRs/runs_select/IL12_6.csv")
+IL12_6$Sample <- as.character(IL12_6$Sample)
+
 IL12 <- rbind(IL12_1, IL12_2)
 IL12 <- rbind(IL12, IL12_3)
+IL12 <- rbind(IL12, IL12_4)
+IL12 <- rbind(IL12, IL12_5)
+IL12 <- rbind(IL12, IL12_6)
+
 IL12 <- IL12 %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(IL12_1, IL12_2, IL12_3)
+rm(IL12_1, IL12_2, IL12_3, IL12_4, IL12_5, IL12_6)
 ###################################################################################################
 Ppia_1 <- read.csv("./E1_RT-qPCRs/runs_select/Ppia_1.csv")
 Ppia_1$Sample <- as.character(Ppia_1$Sample)
@@ -57,36 +103,64 @@ IL6_1$Sample <- as.character(IL6_1$Sample)
 
 IL6_2 <- read.csv("./E1_RT-qPCRs/runs_select/IL6_2.csv")
 IL6_2$Sample <- as.character(IL6_2$Sample)
+
+IL6_3 <- read.csv("./E1_RT-qPCRs/runs_select/IL6_3.csv")
+IL6_3$Sample <- as.character(IL6_3$Sample)
+
 IL6 <- rbind(IL6_1, IL6_2)
+IL6 <- rbind(IL6, IL6_3)
+
 IL6 <- IL6 %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(IL6_1, IL6_2)
+rm(IL6_1, IL6_2, IL6_3)
 ###################################################################################################
 Ppib_1 <- read.csv("./E1_RT-qPCRs/runs_select/Ppib_1.csv")
 Ppib_1$Sample <- as.character(Ppib_1$Sample)
-Ppib <- Ppib_1
+
+Ppib_2 <- read.csv("./E1_RT-qPCRs/runs_select/Ppib_2.csv")
+Ppib_2$Sample <- as.character(Ppib_2$Sample)
+
+Ppib_3 <- read.csv("./E1_RT-qPCRs/runs_select/Ppib_3.csv")
+Ppib_3$Sample <- as.character(Ppib_3$Sample)
+
+
+Ppib <- rbind(Ppib_1, Ppib_2)
+Ppib <- rbind(Ppib, Ppib_3)
+
 Ppib <- Ppib %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(Ppib_1)
+rm(Ppib_1, Ppib_2, Ppib_3)
 ###################################################################################################
 STAT6_1 <- read.csv("./E1_RT-qPCRs/runs_select/STAT6_1.csv")
 STAT6_1$Sample <- as.character(STAT6_1$Sample)
 
 STAT6_2 <- read.csv("./E1_RT-qPCRs/runs_select/STAT6_2.csv")
 STAT6_2$Sample <- as.character(STAT6_2$Sample)
+
+STAT6_3 <- read.csv("./E1_RT-qPCRs/runs_select/STAT6_3.csv")
+STAT6_3$Sample <- as.character(STAT6_3$Sample)
+
 STAT6 <- rbind(STAT6_1, STAT6_2)
+STAT6 <- rbind(STAT6, STAT6_3)
+
 STAT6 <- STAT6 %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(STAT6_1, STAT6_2)
+rm(STAT6_1, STAT6_2, STAT6_3)
 ###################################################################################################
 TGF_1 <- read.csv("./E1_RT-qPCRs/runs_select/TGF_1.csv")
 TGF_1$Sample <- as.character(TGF_1$Sample)
 
 TGF_2 <- read.csv("./E1_RT-qPCRs/runs_select/TGF_2.csv")
 TGF_2$Sample <- as.character(TGF_2$Sample)
+
+TGF_3 <- read.csv("./E1_RT-qPCRs/runs_select/TGF_3.csv")
+TGF_3$Sample <- as.character(TGF_3$Sample)
+
 TGF <- rbind(TGF_1, TGF_2)
+TGF <- rbind(TGF, TGF_3)
+
 TGF <- TGF %>% dplyr::group_by(Sample, Target) %>% dplyr::summarise(Cq = mean(Cq, na.rm = T))
-rm(TGF_1, TGF_2)
+rm(TGF_1, TGF_2, TGF_3)
 ###################################################################################################
 
-RT <- rbind(CDC_1, CXCL)
+RT <- rbind(CDC, CXCL)
 RT <- rbind(RT, IFN)
 RT <- rbind(RT, IL10)
 RT <- rbind(RT, IL12)
@@ -208,10 +282,11 @@ names(RT.long)[names(RT.long) == "Sample"] <- "EH_ID"
 # load in mouse history to check how the infections explain expressions
 E1 <- read.csv("https://raw.githubusercontent.com/derele/Jan2017Exp/master/Experiment_Table_raw_NMRI_Jan2017.csv")
 names(E1)[names(E1) == "mouseID"] <- "EH_ID"
+E1$dpi.diss <- gsub('7dip', '7dpi', E1$dpi.diss)
 E1.wide <- merge(E1, RT.wide, by = "EH_ID")
 E1.long <- merge(E1, RT.long, by = "EH_ID")
 # order dpi.diss
-E1.long$dpi.diss <- factor(E1.long$dpi.diss, levels = c("3dpi", "5dpi", "7dip", "9dpi", "11dpi"))
+E1.long$dpi.diss <- factor(E1.long$dpi.diss, levels = c("3dpi", "5dpi", "7dpi", "9dpi", "11dpi"))
 E1.long$inf.strain <- as.factor(E1.long$inf.strain)
 
 ggplot(subset(E1.long, !is.na(E1.long$NE)), aes(x = as.numeric(dpi.diss), y = NE, color = inf.strain)) +
@@ -219,3 +294,4 @@ ggplot(subset(E1.long, !is.na(E1.long$NE)), aes(x = as.numeric(dpi.diss), y = NE
   geom_smooth(se = F) +
   facet_wrap(~Target, scales = "free")
 
+write.csv(RT.wide, "./E1_RT-qPCRs/repeats.csv")
