@@ -12,9 +12,9 @@ library(lmerTest)
 library(modelr)
 library(sjPlot)
 
-lab_long <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/lab_immuno_long.csv"))
-wild_long <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Databasing/master/data/HZ19_immuno_long.csv"))
-lab <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/Lab_COMPLETE.csv"))
+lab_long <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/lab_immuno_long.csv")
+wild_long <- read.csv("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Databasing/master/data/HZ19_immuno_long.csv")
+lab <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/Lab_COMPLETE.csv")
 # rename and delet columns for merging
 lab_long$X <- NULL
 wild_long$X <- NULL
@@ -72,7 +72,7 @@ ggplot((subset(long_delta, !is.na(long_delta$delta))), aes(x = Eim_MC, y = delta
   ggtitle("infection intensities in wild and wild-derived mice")
 
 # infection(delta) dependent IFNy increase (rewrite for lab where needed)
-complete <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_P4_Eim_complete.csv"))
+complete <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_P3_P4_Eim_complete.csv")
 complete$X <- NULL
 complete$label.1 <- NULL
 complete <- distinct(complete)
@@ -117,7 +117,7 @@ ggplot(IFN, aes(x = delta, y = IFNy_CEWE, color = Eimeria)) +
   scale_color_manual(breaks = c("Uninfected", "E.falciformis", "E.ferrisi"),
                      values=c("#009999", "#FF6666", "#339933")) +
   ylim(0, 880) +
-  ggtitle("infection intensity effect on IFN-y abundance")
+  ggtitle("infection intensity effect on IFN-y abundance in lab")
 
 #continue reordering for models
 IFN$Eimeria <- factor(IFN$Eimeria, levels = c("Uninfected", "E.falciformis", "E.ferrisi"))
@@ -146,7 +146,7 @@ tab_model(fal,
           dv.labels=c("IFN-y"))
 
 ############################# wild IFNy
-HZ19 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/HZ19_immuno.csv"))
+HZ19 <- read.csv("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/HZ19_immuno.csv")
 HZ19$MC.Eimeria[HZ19$MC.Eimeria == "TRUE"] <- "infected"
 HZ19$MC.Eimeria[HZ19$MC.Eimeria == "FALSE"] <- "uninfected"
 HZ19 <- select(HZ19, Mouse_ID, delta, IFNy, MC.Eimeria)
@@ -164,7 +164,14 @@ ggplot(subset(HZ19, !is.na(HZ19$IFNy) & !is.na(HZ19$delta)), aes(x = delta, y = 
         axis.title=element_text(size=14,face="bold"),
         strip.text.x = element_text(size = 14, face = "bold"),
         strip.text.y = element_text(size = 14, face = "bold")) +
+  scale_color_manual(breaks = c("uninfected", "infected"),
+                     values=c("#009999", "#FF6666")) +
   ggtitle("infection intensity effect on IFN-y abundance")
+
+
+
+
+
 
 # wild IFN
 HZ19$MC.Eimeria <- factor(HZ19$MC.Eimeria, levels = c("uninfected", "infected"))
@@ -212,7 +219,8 @@ ggplot(subset(long, long$EXP_type == "wild"),
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("")
-# cell populations of lab
+
+
 
 
 
@@ -237,6 +245,28 @@ ggplot(subset(long, long$EXP_type == "lab"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("")
 
+
+
+####### compare lab and wild
+
+ggplot(subset(long, !is.na(long$Eim_MC)),
+       aes(x = Eim_MC, y = counts, color = Eim_MC)) +
+  geom_boxplot(outlier.shape=NA, show.legend = F) + 
+  geom_jitter(size = 3, width = 0.3, show.legend = F) +
+  stat_compare_means(comparisons = my_comparisons,
+                     method = "wilcox.test", 
+                     aes(label = ..p.signif..), 
+                     size = 3, label.y.npc =0.95) +
+  facet_grid(EXP_type~pop, scales = "free") +
+  labs(y = "cell counts %", x = "") + 
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text=element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("")
 
 # remake lab cells flow chart explanation of Th1 response
 
@@ -320,7 +350,7 @@ ggplot(complete1,
         legend.title = element_text(size = 12, face = "bold")) +
   scale_color_manual(breaks = c("Uninfected", "E.falciformis", "E.ferrisi"),
                      values=c("#009999", "#FF6666", "#339933")) +
-  ggtitle("CD8 in laboratory mice")
+  ggtitle("CD8+ in laboratory mice")
 
 ggplot(complete1, 
        aes(x = Eimeria, y = Act_CD8, color = Eimeria)) +
@@ -425,7 +455,7 @@ ggplot(subset(long, long$EXP_type == "wild"),
         strip.text.y = element_text(size = 14, face = "bold"),
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
-  ggtitle("CD4+ in wild mice")
+  ggtitle("")
 # IFNy_CD4, IFNy_CD8, TH17 and Treg17
 
 ggplot(subset(long, long$pop == "IFNy_CD4" & !is.na(long$Eim_MC)), 
@@ -555,7 +585,7 @@ ggplot(distinct(subset(long, long$pop == "Th17" & !is.na(long$delta))), aes(x = 
   ggtitle("IFN-y producing CD8+ cells")
 
 ############################ wild species and genes
-HZ18 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/Gene_expression/HZ18_complete.csv"))
+HZ18 <- read.csv("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/Gene_expression/HZ18_complete.csv")
 HZ18 <- select(HZ18, Mouse_ID, Target, deltaCtMmE_tissue, Eimeria.subspecies, NE, inf)
 HZ18$inf[HZ18$inf == "TRUE"] <- "infected"
 HZ18$inf[HZ18$inf == "FALSE"] <- "uninfected"
@@ -606,9 +636,9 @@ ggplot(HZ18, aes(x = Eimeria.subspecies, y = delta, color = Eimeria.subspecies))
   ggtitle("Gene expression in the wild")
 
 ############# lab species and genes
-E7 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_CEWE_RT-qPCR.csv"))
+E7 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_CEWE_RT-qPCR.csv")
 E7$X <- NULL
-P3 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_CEWE_RTqPCR.csv"))
+P3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_CEWE_RTqPCR.csv")
 P3$X <- NULL
 names(E7)[names(E7) == "Mouse_ID"] <- "EH_ID"
 
@@ -646,7 +676,7 @@ HZRT <- read.csv(text = getURL())
 ################### toy with lab
 
 
-CLS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/CLS_complete.csv"))
+CLS <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/CLS_complete.csv")
 CLS$Eimeria1[CLS$primary == "E64"] <- "E.ferrisi"
 CLS$Eimeria1[CLS$primary == "E139"] <- "E.ferrisi"
 CLS$Eimeria1[CLS$primary == "E88"] <- "E.falciformis"
@@ -663,12 +693,12 @@ ggplot(subset(CLS, CLS$OPG > 0 & !is.na(CLS$primary)), aes(Eimeria1, OPG, color 
   geom_boxplot() +
   geom_jitter()
 
-ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = weight_change, color = Eimeria1)) + 
+ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = relative_weight, color = Eimeria1)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~Eimeria1)
 
-ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = weight_change, color = primary)) + 
+ggplot(subset(CLS, !is.na(CLS$primary)), aes( x = dpi, y = relative_weight, color = primary)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~primary) + 
@@ -679,12 +709,12 @@ ggplot(subset(CLS, CLS$OPG > 0 & !is.na(CLS$challenge)), aes(Eimeria2, OPG, colo
   geom_boxplot() +
   geom_jitter()
 
-ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = weight_change, color = Eimeria2)) + 
+ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = relative_weight, color = Eimeria2)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~Eimeria2)
 
-ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = weight_change, color = challenge)) + 
+ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = relative_weight, color = challenge)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~challenge) + 
