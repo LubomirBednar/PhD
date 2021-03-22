@@ -8,9 +8,9 @@ library(ggpubr)
 
 
 # load in xlsx by sheet + remove NA rows 
-FACSraw1 <- read_xlsx("~/Downloads/Lubomir FACS data_03.03.2021.xlsx", sheet = 1)
+FACSraw1 <- read_xlsx("~/GitHub/Eimeria_Lab/data/Experiment_results//Lubomir FACS data_03.03.2021.xlsx", sheet = 1)
 FACSraw1 <- na.omit(FACSraw1)
-FACSraw2 <- read_xlsx("~/Downloads/Lubomir FACS data_03.03.2021.xlsx", sheet = 2)
+FACSraw2 <- read_xlsx("~/GitHub/Eimeria_Lab/data/Experiment_results//Lubomir FACS data_03.03.2021.xlsx", sheet = 2)
 FACSraw2 <- na.omit(FACSraw2)
 
 # separate Sample into EH_ID and organ (aka. position) + combine
@@ -48,9 +48,9 @@ FACS.long <- merge(FACS.long, label)
 
 
 # write out 
-write.csv(FACS, "~/Eimeria_Lab/data/Experiment_results/E11_012021_Eim_FACS.csv")
+write.csv(FACS, "~/GitHub/Eimeria_Lab/data/Experiment_results/E11_012021_Eim_FACS.csv")
+write.csv(FACS.long, "~/GitHub/Eimeria_Lab/data/Experiment_results/E11_012021_Eim_FACS_long.csv")
 
 ggplot(FACS.long, aes(x = challenge_infection, y = count, color = challenge_infection)) +
   geom_violin() + 
-  stat_comp
   facet_wrap(~Pop, scales = "free_y")
