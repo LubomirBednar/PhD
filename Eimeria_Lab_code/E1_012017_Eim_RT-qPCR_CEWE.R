@@ -434,12 +434,48 @@ E1.long$inf.strain <- as.factor(E1.long$inf.strain)
 ggplot(subset(E1.long, !is.na(E1.long$NE)), aes(x = as.numeric(dpi.diss), y = NE, color = inf.strain)) +
   geom_point() +
   geom_smooth(se = F) +
-  facet_wrap(~Target, scales = "free") +
-scale_colour_brewer("infection\nisolate", palette = "Dark2")
+  facet_wrap(~Target, scales = "free_y") +
+scale_colour_brewer("infection\nisolate", palette = "Dark2") +
+  scale_x_continuous(labels=c("dpi3", "dpi5", "dpi7", "dpi9", "dpi11"))
 
 # add genes as factors to order
 E1.long$Target = factor(E1.long$Target, levels=c('CXCL9','IL6','IL10','IL12', "IFNy", "TGFb", "STAT6"))
 
+## Now contrasting against negative control
+# l3v3l setting introduces only NAs
+E1.long$inf.strain = factor(E1.long$inf.strain, levels(E1.long$inf.strain)[c(4,1:3)])
+
+modCXCL9.cu <- lmer(NE~inf.strain + (1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"CXCL9"))
+summary(modCXCL9.cu)
+
+modIL10.cu <- lmer(NE~inf.strain + (1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"IL10"))
+summary(modIL10.cu)
+
+modIL12.cu <- lmer(NE~inf.strain + (1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"IL12"))
+summary(modIL12.cu)
+
+modIL6.cu <- lmer(NE~inf.strain + (1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"IL6"))
+summary(modIL6.cu)
+
+modIFNG.cu <- lmer(NE~inf.strain + (1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"IFNy"))
+summary(modIFNG.cu)
+
+modSTAT6.cu <- lmer(NE~inf.strain  +(1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"STAT6"))
+summary(modSTAT6.cu)
+
+modTGFB.cu <- lmer(NE~inf.strain + (1|dpi.diss), data=subset(E1.long, E1.long$Target%in%"TGFb"))
+summary(modTGFB.cu)
+
+ggplot(fortify(modTGFB.cu), aes(inf.strain , NE, color=dpi.diss)) +
+  stat_summary(fun.data=mean_se, geom="pointrange") +
+  stat_summary(aes(y=.fitted), fun.y=mean, geom="line")
+
+
+tab_model(modCXCL9.cu, modIL10.cu, modIL12.cu, modIL6.cu,
+          modIFNG.cu, modSTAT6.cu, modTGFB.cu,
+          file="CEtable_VS_non_infected(itercept).html",
+          dv.labels=c("CXCL9", "IL10", "IL12", "IL6",
+                      "IFNG", "STAT6", "TGFB"))
 # plot Spleen
 # CytokinesSP <- 
 ggplot(subset(E1.long, !is.na(E1.long$NE)), aes(x = dpi.diss, y = NE, color=inf.strain, group = inf.strain)) +

@@ -101,6 +101,28 @@ complete1$Eimeria[complete1$challenge == "E88"] <- "E.falciformis"
 complete1$Eimeria[complete1$challenge == "UNI"] <- "Uninfected"
 
 complete1$Eimeria[complete1$Eim_MC == "uninfected"] <- "Uninfected"
+# run MDS on complete for now
+
+
+
+
+###### add E10 and E11 to complete
+
+E10W <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10_112020_Eim_record.csv")
+E10W$X <- NULL
+E10W <- select(E10W, "EH_ID", "labels", "dpi", "batch", "relative_weight", "challenge_infection", "infection_history")
+
+E11W <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E11_012021_Eim_record.csv")
+E11W$X <- NULL
+E11W <- select(E11W, "EH_ID", "labels", "dpi", "batch", "relative_weight", "challenge_infection", "infection_history")
+
+
+names(long)[names(long) == "Mouse_ID"] <- "EH_ID"
+
+
+
+
+
 # test and add to ggplot (remove stat cor and regline)
 IFN <- select(complete1, EH_ID, delta, IFNy_CEWE, Eimeria)
 # graph before reordering for models
@@ -725,7 +747,7 @@ ggplot(subset(CLS, CLS$OPG > 0), aes(x = dpi, y = OPG, color = batch)) +
   geom_jitter() +
   facet_wrap(~infection_history)
 
-ggplot(CLS, aes(x = dpi, y = weight_change, color = batch)) +
+ggplot(CLS, aes(x = dpi, y = relative_weight, color = batch)) +
   geom_jitter() +
   geom_smooth() +
   facet_wrap(~infection_history) +

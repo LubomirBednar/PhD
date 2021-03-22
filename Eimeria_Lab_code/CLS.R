@@ -4,11 +4,12 @@ library(httr)
 library(RCurl)
 library(tidyverse)
 library(ggpubr)
+library(dplyr)
 
 # load in the COMPLETE tables (should contain everything at LABEL level)
-P3 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_COMPLETE.csv"))
+P3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_COMPLETE.csv")
 P3$X <- NULL
-P4 <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_COMPLETE.csv"))
+P4 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_COMPLETE.csv")
 P4$X <- NULL
 P4$experiment <- "P4"
 P4$labels.1 <- NULL
@@ -38,7 +39,9 @@ complete <- rbind.fill(P3, P4)
 
 write.csv(complete, "../GitHub/Eimeria_Lab/data/Experiment_results/CLS_complete.csv")
 
-CLS <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/CLS_complete.csv"))
+# CLS <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/CLS_complete.csv")
+
+CLS <- complete
 CLS$Eimeria1[CLS$primary == "E64"] <- "E.ferrisi"
 CLS$Eimeria1[CLS$primary == "E139"] <- "E.ferrisi"
 CLS$Eimeria1[CLS$primary == "E88"] <- "E.falciformis"
@@ -72,7 +75,7 @@ ggplot(subset(CLS, CLS$OPG > 0 & !is.na(CLS$challenge)), aes(Eimeria2, OPG, colo
   geom_boxplot() +
   geom_jitter()
 
-ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = weight_change, color = Eimeria2)) + 
+ggplot(subset(CLS, !is.na(CLS$challenge)), aes( x = dpi, y = relative_weight, color = Eimeria2)) + 
   geom_smooth() + 
   geom_jitter() + 
   facet_wrap(~Eimeria2)
@@ -88,9 +91,23 @@ ggplot(subset(CLS, CLS$OPG > 0), aes(x = dpi, y = OPG, color = batch)) +
   geom_jitter() +
   facet_wrap(~infection_history)
 
-ggplot(CLS, aes(x = dpi, y = weight_change, color = batch)) +
+ggplot(subset(CLS, !is.na(CLS$challenge)), aes(x = dpi, y = relative_weight, color = challenge)) +
   geom_jitter() +
   geom_smooth() +
-  facet_wrap(~infection_history) +
-  ylim(70,120)
+  facet_wrap(~infection_history)
 
+ggplot(subset(CLS, !is.na(CLS$primary)), aes(x = dpi, y = relative_weight, color = primary)) +
+  geom_jitter() +
+  geom_smooth() +
+  facet_wrap(~primary)
+
+ggplot(subset(CLS, !is.na(CLS$primary)), aes(x = OPG, y = relative_weight, color = primary)) +
+  geom_jitter() +
+  geom_smooth() +
+  facet_wrap(~primary)
+
+weight <- select(CLS, relative_weight, dpi)
+
+ggplot(subset(CLS, !is.na(CLS$primary)), aes(dpi, log(OPG))) + 
+  geom_line() +
+  geom_line(data = CLS, color = "red")
