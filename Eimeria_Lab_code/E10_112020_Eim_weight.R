@@ -5,21 +5,20 @@ library(dplyr)
 library(tidyverse)
 
 # get raw files of records
-E10aR <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10a_112020_Eim_record.csv"))
+E10aR <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10a_112020_Eim_record.csv")
 E10aR$X <- NULL
-E10bR <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10b_112020_Eim_record.csv"))
+E10bR <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10b_112020_Eim_record.csv")
 E10bR$X <- NULL 
 # get raw design file
-E10aD <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E10a_112020_Eim_design.csv"))
-E10bD <- read.csv(text = getURL("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E10b_112020_Eim_design.csv"))
+E10D <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E10_112020_Eim_DESIGN.csv")
+
 # merge together into E10R + remove redundants
 E10aR <- dplyr::select(E10aR, EH_ID, dpi, labels, weight, relative_weight, weight_dpi0, feces_weight, mouse_strain, experiment)
-E10aRD <- merge(E10aR, E10aD)
+E10aRD <- merge(E10aR, E10D)
 
-E10bRD <- merge(E10bR, E10bD)
-rm(E10aR, E10bR, E10bD, E10aD)
+E10bRD <- merge(E10bR, E10D)
+rm(E10aR, E10bR)
 # merge together into E10D and remove redundants
-E10aRD$dpi_dissection <- NA
 E10 <- rbind(E10aRD, E10bRD)
 rm(E10bRD, E10aRD)
 # look at primary infection
