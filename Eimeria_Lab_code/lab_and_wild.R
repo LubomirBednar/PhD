@@ -188,7 +188,7 @@ ggplot(subset(HZ19, !is.na(HZ19$IFNy) & !is.na(HZ19$delta)), aes(x = delta, y = 
         strip.text.y = element_text(size = 14, face = "bold")) +
   scale_color_manual(breaks = c("uninfected", "infected"),
                      values=c("#009999", "#FF6666")) +
-  ggtitle("infection intensity effect on IFN-y abundance")
+  ggtitle("infection intensity effect on IFN-y abundance in WILD")
 
 
 
@@ -660,24 +660,72 @@ ggplot(HZ18, aes(x = Eimeria.subspecies, y = delta, color = Eimeria.subspecies))
 ############# lab species and genes
 E7 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_CEWE_RT-qPCR.csv")
 E7$X <- NULL
+E7$EXP_type <- "WDS"
 P3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_CEWE_RTqPCR.csv")
 P3$X <- NULL
+P3$EXP_type <- "CLS"
 names(E7)[names(E7) == "Mouse_ID"] <- "EH_ID"
+
+
 
 lab_RT <- rbind(E7, P3)
 RT_merge <- select(complete1, EH_ID, delta, Eim_MC, Eimeria)
 lab_RT <- merge(lab_RT, RT_merge)
 RT_long <- gather(lab_RT, Target, NE, CXCR3:IL.12, factor_key=TRUE)
 
-ggplot(RT_long,
-         aes(x = Eimeria, y = NE, color = Eimeria)) +
-  geom_boxplot(outlier.shape=NA, show.legend = F) + 
-  geom_jitter(size = 3, width = 0.3, show.legend = F) +
+ggplot(subset(RT_long, RT_long$EXP_type == "CLS"),
+       aes(x = Eimeria, y = NE, color = Eimeria)) +
+  geom_boxplot(outlier.shape=NA) + 
+  geom_jitter(size = 3, width = 0.3) +
   stat_compare_means(comparisons = my_comparisons,
                      method = "wilcox.test", 
                      aes(label = ..p.signif..), 
                      size = 3, label.y.npc =0.95) +
   facet_wrap(~Target, scales = "free") +
+  labs(y = "Normalised expression", x = "") + 
+  # theme(axis.text=element_text(size=12, face = "bold"),
+  #       title = element_text(size = 16, face = "bold"),
+  #       axis.title=element_text(size=14,face="bold"),
+  #       axis.title.x = element_blank(),
+  #       axis.text.x=element_blank(),
+  #       strip.text.x = element_text(size = 14, face = "bold"),
+  #       strip.text.y = element_text(size = 14, face = "bold"),
+  #       legend.text=element_text(size=12, face = "bold"),
+  #       legend.title = element_text(size = 12, face = "bold")) +
+  # scale_color_manual(breaks = c("uninfected", "E. falciformis", "E. ferrisi"),
+  #                    values=c("#009999", "#FF6666", "#339933")) +
+  ggtitle("Gene expression in the CLS")
+
+ggplot(subset(RT_long, RT_long$EXP_type == "WDS"),
+       aes(x = Eimeria, y = NE, color = Eimeria)) +
+  geom_boxplot(outlier.shape=NA) + 
+  geom_jitter(size = 3, width = 0.3) +
+  stat_compare_means(comparisons = my_comparisons,
+                     method = "wilcox.test", 
+                     aes(label = ..p.signif..), 
+                     size = 3, label.y.npc =0.95) +
+  facet_wrap(~Target, scales = "free") +
+  labs(y = "Normalised expression", x = "") + 
+  # theme(axis.text=element_text(size=12, face = "bold"),
+  #       title = element_text(size = 16, face = "bold"),
+  #       axis.title=element_text(size=14,face="bold"),
+  #       axis.title.x = element_blank(),
+  #       axis.text.x=element_blank(),
+  #       strip.text.x = element_text(size = 14, face = "bold"),
+  #       strip.text.y = element_text(size = 14, face = "bold"),
+  #       legend.text=element_text(size=12, face = "bold"),
+  #       legend.title = element_text(size = 12, face = "bold")) +
+  # scale_color_manual(breaks = c("uninfected", "E. falciformis", "E. ferrisi"),
+  #                    values=c("#009999", "#FF6666", "#339933")) +
+ggtitle("Gene expression in the WDS")
+
+
+ggplot(subset(RT_long, RT_long$Target == "CXCR3"),
+         aes(x = EXP_type, y = NE, color = Eim_MC)) +
+  geom_boxplot(outlier.shape=NA, show.legend = F) + 
+  stat_compare_means(aes(label = ..p.signif..), 
+                     size = 3, label.y.npc =0.95) +
+  facet_wrap(~Eim_MC) +
   labs(y = "Normalised expression", x = "") + 
   theme(axis.text=element_text(size=12, face = "bold"),
         title = element_text(size = 16, face = "bold"),
@@ -688,6 +736,7 @@ ggplot(RT_long,
         legend.text=element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
   ggtitle("Gene expression in the lab")
+compare_means(NE ~ EXP_type, data = subset(RT_long, RT_long$Target == "CXCR3"))
 
 # well shit...
 # wild species and genes

@@ -61,26 +61,48 @@ WDS_challenge <- subset(WDS, !is.na(WDS$challenge_infection))
 # shuld have a dataset with all weight data and some OPG data
 
 ggplot(WDS_primary, aes(x = dpi, y = relative_weight, color = primary_infection)) +
-  geom_point() +
+  geom_jitter(width = 0.2) +
   geom_smooth() + 
   facet_wrap(~mouse_strain)
+
+ggplot(WDS_primary, aes(x = dpi, y = relative_weight, color = primary_infection)) +
+  geom_jitter(width = 0.2) +
+  geom_smooth() +
+  ggtitle("WDS weightloss in primary infection")
 
 ggplot(WDS_challenge, aes(x = dpi, y = relative_weight, color = challenge_infection)) +
   geom_jitter(width = 0.2) +
   geom_smooth() +
   facet_wrap(~mouse_strain)
 
+ggplot(WDS_challenge, aes(x = dpi, y = relative_weight, color = challenge_infection)) +
+  geom_jitter(width = 0.2) +
+  geom_smooth() +
+  ggtitle("WDS weightloss in challenge infection")
+
 ####
 # add immune factors
 E7immuno <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_immuno.csv")
 names(E7immuno)[names(E7immuno) == "label"] <- "labels"
+E7gene <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_CEWE_RT-qPCR.csv")
+
+E7gene.long <- pivot_longer(E7gene, cols = c("CXCR3", "IRG6", "IL.12"))
+E7gene.long$dpi <- 8
+E7gene.long$EH_ID <- as.character(sub("_", "", E7gene.long$EH_ID))
+E7gene.long <- merge(E7gene.long, E7)
+
+ggplot(E7gene.long, aes(x = name, y = value, color = challenge_infection)) +
+  geom_boxplot() +
+  geom_smooth() +
+  ggtitle("E7 gene expression")
+
 E7immuno <- select(E7immuno, EH_ID, dpi, labels, delta, IFNy_CEWE, Eim_MC, EXP_type, CD4, Treg, Div_Treg, Position,
                    Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 E7immuno$EH_ID <- as.character(sub("_", "", E7immuno$EH_ID))
-
-
 #needs fixing after delta, IFNy cEWE and such exist (Position is causing havoc so remove it for now)
 E11immuno <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E11_012021_Eim_FACS.csv")
+
+
 E11immuno <- select(E11immuno, EH_ID, dpi, labels, CD4, Treg, Div_Treg, Position,
                     Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 E11immuno$delta <- "NA"
@@ -127,11 +149,11 @@ WDS_MDS <- na.omit(WDS_MDS)
 mds.data <- merge(mds.data, WDS_MDS)
 # graph with looking at infection isolate, mouse strain, etc
 ggplot(data = mds.data, aes(x = X, y = Y, label=EH_ID, color = challenge_infection))+
-  geom_point()+
+  geom_point(size = 3)+
   theme_bw()+
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep = ""))+
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep = ""))+
-  ggtitle("MDS plot coloured by infection")
+  ggtitle("immune cell MDS by infection")
 
 ggplot(data = mds.data, aes(x = X, y = Y, label=EH_ID, color = mouse_strain))+
   geom_point()+
@@ -151,7 +173,7 @@ ggplot(data = mds.data, aes(x = X, y = Y, label=EH_ID, color = infection_history
 WDS_PCA <- subset(WDS, WDS$dpi == 8)
 WDS_PCA <- subset(WDS_PCA, WDS_PCA$Position == "mLN")
 WDS_PCA <- select(WDS_PCA, EH_ID, #challenge_infection, mouse_strain, infection_history, 
-                  relative_weight, CD4, Treg, Div_Treg, Treg17,
+                  CD4, Treg, Div_Treg, Treg17,
                   Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 WDS_PCA <- na.omit(WDS_PCA)
 WDS_PCA <- WDS_PCA %>% remove_rownames %>% column_to_rownames(var="EH_ID")
@@ -176,7 +198,7 @@ score_ranked <- sort(scores, decreasing = T)
 top10 <- names(score_ranked[1:10])
 pca$rotation[top10,1]
 
-ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = challenge_infection)) +
+ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = relative_weight, shape = challenge_infection)) +
   geom_point(size = 3)+
   xlab(paste("PC1 - ", pca.var.per[1], "%", sep = "")) +
   ylab(paste("PC2 - ", pca.var.per[2], "%", sep = "")) +
@@ -200,6 +222,47 @@ ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = infection_histo
 ######################### effect of cell populations on oocysts and weight
 WDS_8 <- subset(WDS, WDS$dpi == 8)
 WDS_8 <- subset(WDS_8, !is.na(WDS_8$CD4))
+pca.data$primary <- unlist(lapply(str_split(string = pca.data$infection_history, pattern = ":"), "[[", 1))
+pca.data$secondary <- unlist(lapply(str_split(string = pca.data$infection_history, pattern = ":"), "[[", 2))
+pca.data$primary <- as.character(sub("UNI", "aUNI", pca.data$primary))
+pca.data$secondary <- as.character(sub("UNI", "aUNI", pca.data$secondary))
 
+mod1 <- lm(relative_weight~primary*secondary+X+Y, pca.data)
 
+mod3 <- lm(relative_weight~X+Y, pca.data)
                 
+mod2 <- lm(relative_weight~secondary+X+Y, pca.data)
+summary(mod2)
+
+# this is very cool but we're using relative weight from day 8, which won't tell us much
+# make maximum OPG and maximum weightloss columns ad test those
+max_weight<- WDS %>% select(EH_ID, relative_weight)
+# max_OPG<- WDS %>% select(EH_ID, OPG)
+
+# max_OPG$OPG <- as.numeric(as.character(max_OPG$OPG))
+max_weight <- max_weight %>% dplyr::group_by(EH_ID) %>% dplyr::summarise(relative_weight = min(relative_weight, na.rm = T))
+# max_OPG <- max_OPG %>% dplyr::group_by(EH_ID) %>% dplyr::summarise(OPG = max(OPG, na.rm = T))
+names(max_weight)[names(max_weight) == "relative_weight"] <- "maximum_weight_loss"
+pca.data1 <- merge(pca.data, max_weight, by = "EH_ID")
+
+mod4 <- lm(maximum_weight_loss~primary*secondary+X+Y, pca.data1)                   
+mod5 <- lm(maximum_weight_loss~secondary+X+Y, pca.data1) 
+mod6 <- lm(maximum_weight_loss~X+Y, pca.data1)
+
+summary(mod4)
+
+library(ggeffects)
+gg <- ggpredict(mod4, c("primary", "secondary", "X", "Y"))
+ggplot(gg, aes(x, predicted)) +
+  geom_jitter(width = 0.2) +
+  geom_line()
+
+ggplot(gg, aes(x, predicted, colour = group)) + 
+  geom_line() + 
+  geom_jitter(width = 0.2)
+
+mod4_matrix <- model.matrix(maximum_weight_loss~primary*secondary+X+Y, pca.data1)
+length(mod4$coefficients) > mod4$rank
+library(Matrix)
+cat(rankMatrix(mod4_matrix),"\n")
+    
