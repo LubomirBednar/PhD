@@ -396,31 +396,6 @@ names(pca.data.swap2)[names(pca.data.swap2) == "maximum_weight_loss_challenge"] 
 
 pca.data.swap <- rbind(pca.data.swap1, pca.data.swap2)
 
-
-mod4 <- lm(maximum_weight_loss~infection_history+X+Y, pca.data.swap) 
-summary(mod4)
-mod4gg <- ggpredict(mod4, c("infection_history", "X"))
-plot(mod4gg) + 
-  geom_point() +
-  xlab(label = "infection history") +
-  ylab(label = bquote(atop("maximum weight loss (%)",
-                   "lower = higher impact"))) +
-  theme_bw() +
-  ggtitle("Predicted weight loss by infection history")
-
-ggplot(pca.data.swap, aes(y = maximum_weight_loss, x = relevant_history, colour = X)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, size = 3) +
-  theme_bw() + 
-  ggtitle("") + 
-  xlab("infection history") + 
-  ylab(bquote(atop("maximum weight loss %",
-                   "lower = worse"))) +
-  theme(axis.text = element_text(size = 15), 
-        axis.title = element_text(size = 18), 
-        plot.title = element_text(size = 18),
-        axis.text.x = element_text(angle = 45, vjust = 0.5))
-
 # for this the FAL:UNI and UNI:FAL are the same, join under new column and model
 pca.data.swap$relevant_history[pca.data.swap$eimeria_species_history == "UNI:UNI"] <- "UNI"
 pca.data.swap$relevant_history[pca.data.swap$eimeria_species_history == "UNI:FAL"] <- "FAL"
@@ -433,24 +408,21 @@ pca.data.swap$relevant_history[pca.data.swap$eimeria_species_history == "FER:FAL
 pca.data.swap$relevant_history[pca.data.swap$eimeria_species_history == "FAL:FER"] <- "FAL:FER"
 
 pca.data.swap$relevant_history <- factor(pca.data.swap$relevant_history,
-                                           levels = c("UNI", "FAL", "FER","FER:FER", 
-                                                      "FER:FAL", "FAL:FAL", "FAL:FER"))
+                                         levels = c("UNI", "FAL", "FER","FER:FER", 
+                                                    "FER:FAL", "FAL:FAL", "FAL:FER"))
 
-mod4.3 <- lm(maximum_weight_loss~mouse_strain + relevant_history + X, pca.data.swap)
-summary(mod4.3)
-mod4.3gg <- ggpredict(mod4.3, c("relevant_history", "mouse_strain"))
-plot(mod4.3gg) + 
+mod4 <- lm(maximum_weight_loss~relevant_history+X+Y, pca.data.swap) 
+summary(mod4)
+# percentage error
+sigma(mod4)*100/mean(pca.data.swap$maximum_weight_loss)
+
+mod4gg <- ggpredict(mod4, c("relevant_history", "X"))
+plot(mod4gg) + 
   geom_point() +
-  xlab(label = "mouse_strain") +
+  xlab(label = "infection history") +
   ylab(label = bquote(atop("maximum weight loss (%)",
-                           "lower = higher impact"))) +
-  labs(fill = "PCA1 independent predictor") +
+                   "lower = higher impact"))) +
   theme_bw() +
-  theme(axis.text = element_text(size = 15), 
-        axis.title = element_text(size = 18), 
-        plot.title = element_text(size = 18),
-        axis.text.x = element_text()) +
-  facet_wrap(~group)+
   ggtitle("Predicted weight loss by infection history")
 
 
@@ -476,7 +448,7 @@ plot(mod4.1gg) +
 ggplot(mod4.1, aes(y = predict(mod4.1,terms = c("relevant_history", "X")), 
                    x = X, colour = relevant_history, group = relevant_history)) +
   # geom_jitter(size = 2,width =1, aes(y = predict(mod4.1,terms = c("relevant_history", "X"), 
-                             # colour = group ,pca.data.swap))) +
+  # colour = group ,pca.data.swap))) +
   geom_jitter(width = 1)+
   geom_smooth() +
   theme_bw() + 
@@ -490,6 +462,26 @@ ggplot(mod4.1, aes(y = predict(mod4.1,terms = c("relevant_history", "X")),
         legend.text = element_text(size = 12),
         legend.title = element_blank(),
         axis.text.x = element_text())
+
+
+mod4.3 <- lm(maximum_weight_loss~mouse_strain + X, pca.data.swap)
+summary(mod4.3)
+mod4.3gg <- ggpredict(mod4.3, c("mouse_strain", "X"))
+plot(mod4.3gg) + 
+  geom_point() +
+  xlab(label = "mouse_strain") +
+  ylab(label = bquote(atop("maximum weight loss (%)",
+                           "lower = higher impact"))) +
+  labs(fill = "PCA1 independent predictor") +
+  theme_bw() +
+  theme(axis.text = element_text(size = 15), 
+        axis.title = element_text(size = 18), 
+        plot.title = element_text(size = 18),
+        axis.text.x = element_text()) +
+  ggtitle("Predicted weight loss by infection history")
+
+
+
 
 
 # interesting, check strains that might be pulling it
