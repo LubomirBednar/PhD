@@ -206,6 +206,10 @@ mds.data <- merge(mds.data, WDS_MDS)
 # graph with looking at infection isolate, mouse strain, etc
 ggplot(data = mds.data, aes(x = X, y = Y, label=EH_ID, color = eimeria_species_challenge))+
   geom_point(size = 3)+
+  xlab(label = "infection history") +
+  ylab(label = bquote(atop("maximum weight loss (%)",
+                           "lower = higher impact"))) +
+  labs(fill = "PCA1 independent predictor") +
   theme_bw()+
   xlab(paste("MDS1 - ", mds.var.per[1], "%", sep = ""))+
   ylab(paste("MDS2 - ", mds.var.per[2], "%", sep = ""))+
@@ -271,29 +275,45 @@ pca.var.per.df$top10 <- factor(pca.var.per.df$top10,levels = top10)
 
 ggplot(pca.var.per.df, aes(top10, pca.var.per, fill = top10)) +
   geom_col() +
-  geom_text(aes(label = pca.var.per)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5),
-        legend.title = element_blank())+
+  theme(strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold")) +
   scale_x_discrete(name ="Cell populations") +
   scale_y_discrete(name ="% of variation explained") +
-  labs(fill = "pca.var.per") +
+  labs(fill = "") +
+  
+  geom_text(aes(label = pca.var.per)) +
   theme_bw()
 
-ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = eimeria_species_history)) +
+ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = eimeria_species_challenge)) +
   geom_point(size = 3)+
   xlab(paste("PC1 - ", pca.var.per[1], "%", sep = "")) +
   ylab(paste("PC2 - ", pca.var.per[2], "%", sep = "")) +
-  theme(legend.title = element_blank()) +
-  labs(fill = "infection") +
   theme_bw() +
-  ggtitle("T-cell populations PCA by challenge infection")
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"))+
+  ggtitle("T-cell populations PCA by challenge infection") +
+  labs(color='infection species') 
 # looks good, test for batch independence, add experiment column
 ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = experiment)) +
   geom_point(size = 3)+
   xlab(paste("PC1 - ", pca.var.per[1], "%", sep = "")) +
   ylab(paste("PC2 - ", pca.var.per[2], "%", sep = "")) +
   theme_bw() +
-  ggtitle("Check for batch effect")
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"))+
+  ggtitle("Checking for batch effect") +
+  labs(color='Experiment ID') 
+
 
 # no clustering, moving on
 ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = eimeria_species_history)) +
@@ -388,8 +408,8 @@ plot(mod4gg) +
   theme_bw() +
   ggtitle("Predicted weight loss by infection history")
 
-ggplot(pca.data.swap, aes(y = maximum_weight_loss, x = infection_history, colour = X)) +
-  geom_boxplot(aes(y = predict(mod4,terms = c("infection_history", "X"), pca.data.swap))) +
+ggplot(pca.data.swap, aes(y = maximum_weight_loss, x = relevant_history, colour = X)) +
+  geom_boxplot() +
   geom_jitter(width = 0.2, size = 3) +
   theme_bw() + 
   ggtitle("") + 
@@ -416,8 +436,27 @@ pca.data.swap$relevant_history <- factor(pca.data.swap$relevant_history,
                                            levels = c("UNI", "FAL", "FER","FER:FER", 
                                                       "FER:FAL", "FAL:FAL", "FAL:FER"))
 
-mod4.1 <- lm(maximum_weight_loss~relevant_history+X+Y, pca.data.swap) 
+mod4.3 <- lm(maximum_weight_loss~mouse_strain + relevant_history + X, pca.data.swap)
+summary(mod4.3)
+mod4.3gg <- ggpredict(mod4.3, c("relevant_history", "mouse_strain"))
+plot(mod4.3gg) + 
+  geom_point() +
+  xlab(label = "mouse_strain") +
+  ylab(label = bquote(atop("maximum weight loss (%)",
+                           "lower = higher impact"))) +
+  labs(fill = "PCA1 independent predictor") +
+  theme_bw() +
+  theme(axis.text = element_text(size = 15), 
+        axis.title = element_text(size = 18), 
+        plot.title = element_text(size = 18),
+        axis.text.x = element_text()) +
+  facet_wrap(~group)+
+  ggtitle("Predicted weight loss by infection history")
+
+
+mod4.1 <- lm(maximum_weight_loss~relevant_history*X, pca.data.swap) 
 summary(mod4.1)
+
 mod4.1gg <- ggpredict(mod4.1, c("relevant_history", "X"))
 plot(mod4.1gg) + 
   geom_point() +
@@ -426,20 +465,35 @@ plot(mod4.1gg) +
                            "lower = higher impact"))) +
   labs(fill = "PCA1 independent predictor") +
   theme_bw() +
+  theme(axis.text = element_text(size = 15), 
+        axis.title = element_text(size = 18), 
+        plot.title = element_text(size = 18),
+        axis.text.x = element_text()) +
   ggtitle("Predicted weight loss by infection history")
 
-ggplot(pca.data.swap, aes(y = maximum_weight_loss, x = relevant_history, colour = X)) +
-  geom_boxplot(aes(y = predict(mod4.1,terms = c("eimeria_species_history", "X"), pca.data.swap))) +
-  geom_jitter(width = 0.2, size = 3) +
+
+
+ggplot(mod4.1, aes(y = predict(mod4.1,terms = c("relevant_history", "X")), 
+                   x = X, colour = relevant_history, group = relevant_history)) +
+  # geom_jitter(size = 2,width =1, aes(y = predict(mod4.1,terms = c("relevant_history", "X"), 
+                             # colour = group ,pca.data.swap))) +
+  geom_jitter(width = 1)+
+  geom_smooth() +
   theme_bw() + 
   ggtitle("") + 
-  xlab("infection history") + 
+  xlab("PCA1 coordinates") + 
   ylab(bquote(atop("maximum weight loss %",
                    "lower = worse"))) +
   theme(axis.text = element_text(size = 15), 
         axis.title = element_text(size = 18), 
         plot.title = element_text(size = 18),
-        axis.text.x = element_text(angle = 45, vjust = 0.5))
+        legend.text = element_text(size = 12),
+        legend.title = element_blank(),
+        axis.text.x = element_text())
+
+
+# interesting, check strains that might be pulling it
+
 
 # continue challenge analysis with secondary only
 # model 5 exploration
