@@ -54,7 +54,7 @@ CLS$EH_ID <- as.character(sub("_", "", CLS$EH_ID))
 names(CLS)[names(CLS) == "Strain"] <- "mouse_strain"
 names(CLS)[names(CLS) == "primary"] <- "primary_infection"
 names(CLS)[names(CLS) == "challenge"] <- "challenge_infection"
-CLSimmuno <- select(CLS, EH_ID, dpi, labels, delta, IFNy_CEWE, Eim_MC, EXP_type, CD4, Treg, Div_Treg, Position,
+CLSimmuno <- select(CLS, EH_ID, experiment, dpi, labels, delta, IFNy_CEWE, Eim_MC, EXP_type, CD4, Treg, Div_Treg, Position,
                   Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 CLSimmuno <- subset(CLSimmuno, CLSimmuno$dpi == 8)
 CLSimmuno <- subset(CLSimmuno, CLSimmuno$Position == "mLN")
@@ -151,11 +151,12 @@ ggtitle("E7 gene expression")
 E7immuno <- select(E7immuno, EH_ID, dpi, labels, delta, IFNy_CEWE, Eim_MC, EXP_type, CD4, Treg, Div_Treg, Position,
                  Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 E7immuno$EH_ID <- as.character(sub("_", "", E7immuno$EH_ID))
+E7immuno$experiment <- "E7"
 #needs fixing after delta, IFNy cEWE and such exist (Position is causing havoc so remove it for now)
 E11immuno <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E11_012021_Eim_FACS.csv")
 
 
-E11immuno <- select(E11immuno, EH_ID, dpi, labels, CD4, Treg, Div_Treg, Position,
+E11immuno <- select(E11immuno, EH_ID, dpi, labels, experiment, CD4, Treg, Div_Treg, Position,
                   Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 
 E11immuno$delta <- "NA"
@@ -167,6 +168,13 @@ E_immuno <- rbind(E7immuno, E11immuno)
 E_immuno <- rbind(E_immuno, CLSimmuno)
 
 WDS_challenge <- merge(WDS_challenge, E_immuno, all.x = T)
+
+ggimmuno <- pivot_longer(E_immuno, cols = c("Div_Treg", "Treg", "CD4", "Treg17", "Th1", "Div_Th1", "Th17", "Div_Th17",
+                                          "CD8", "Act_CD8", "Div_Act_CD8", "IFNy_CD4", "IFNy_CD8"))
+
+ggplot(ggimmuno, aes(name, value, color = experiment)) +
+  geom_boxplot() + 
+  facet_wrap(~Eim_MC)
 
 ############### try MDS
 # select only weight and immune aspects for MDS in the mesentery
@@ -339,6 +347,11 @@ pca.data$eimeria_species_history <- factor(pca.data$eimeria_species_history,
                                                "FER:FAL", "FER:UNI", "UNI:FAL", "UNI:FER"))
 
 
+pca.data$mouse_strain <- factor(pca.data$mouse_strain,
+                                     levels = c("SCHUNT_SCHUNT", "SWISS", "PWD_PWD", "BUSNA_STRA", "STRA_BUSNA",
+                                                "PWD_SCHUNT", "STRA_STRA", "STRA_SCHUNT", "PWD_BUSNA", "SCHUNT_PWD",
+                                                "SCHUNT_STRA", "BUSNA_BUSNA", "BUSNA_PWD"))
+
 mod1 <- lm(relative_weight~primary_species*secondary_species+X+Y, pca.data)
 mod2 <- lm(relative_weight~secondary_species+X+Y, pca.data)
 mod3 <- lm(relative_weight~X+Y, pca.data)
@@ -484,23 +497,101 @@ anova(wloss_history_mouse_mod, wloss_history_mouse_X_mod, wloss_history_X_mod)
 
 
 ###################### make X response variable to strains (between mouse strain variance 
+pca.data.swap$mouse_strain <- relevel(pca.data.swap$mouse_strain, "SCHUNT_SCHUNT")
+library(RColorBrewer)
+nb.cols <- 13
+mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
+# correlate weightloss and X (immune)
+shapiro.test(pca.data.swap$X)
+shapiro.test(pca.data.swap$maximum_weight_loss)
+cor(pca.data.swap$X, pca.data.swap$maximum_weight_loss)
+
 #this one only on infected
 X_mouse_mod <- lm(X~mouse_strain, pca.data.swap)
 summary(X_mouse_mod) # strain effects remain more or less + strong infection effect
 Anova(X_mouse_mod) # no residual significance, history has strongest effect
 sigma(X_mouse_mod)*100/mean(pca.data.swap$maximum_weight_loss)# percentage error = 2.275198
+X_mouse_modgg <- ggpredict(X_mouse_mod, c("mouse_strain"))
+plot(X_mouse_modgg) + 
+  geom_point() +
+  xlab(label = "mouse_strain") +
+  ylab(label = bquote(atop("immune response intensity"))) +
+  theme_bw() +
+  ggtitle("Predicted immune response intensity by mouse strain")
+
 # add weightloss
 X_mouse_weight_mod <- lm(X~mouse_strain + maximum_weight_loss, pca.data.swap)
 summary(X_mouse_weight_mod) # strain effects remain more or less + strong infection effect
 Anova(X_mouse_weight_mod) # no residual significance, history has strongest effect
 sigma(X_mouse_weight_mod)*100/mean(pca.data.swap$maximum_weight_loss)# percentage error = 2.287074
-# and infection
-X_mouse_weight_history_mod <- lm(X~mouse_strain + maximum_weight_loss + relevant_history, pca.data.swap)
-summary(X_mouse_weight_history_mod) # strain effects remain more or less + strong infection effect
-Anova(X_mouse_weight_history_mod) # no residual significance, history has strongest effect
-sigma(X_mouse_weight_history_mod)*100/mean(pca.data.swap$maximum_weight_loss)# percentage error = 1.774119
+X_mouse_weight_modgg <- ggpredict(X_mouse_weight_mod, c("maximum_weight_loss", "mouse_strain"))
+plot(X_mouse_weight_modgg) + 
+  scale_fill_manual(values = mycolors) +
+  geom_point() +
+  xlab(label = "mouse_strain") +
+  ylab(label = bquote(atop("immune response intensity"))) +
+  theme_bw() +
+  ggtitle("Predicted immune response intensity by mouse strain")
+
+X_history_weight_mod <- lm(X~relevant_history + maximum_weight_loss, pca.data.swap)
+summary(X_history_weight_mod) # strain effects remain more or less + strong infection effect
+Anova(X_history_weight_mod) # no residual significance, history has strongest effect
+sigma(X_history_weight_mod)*100/mean(pca.data.swap$maximum_weight_loss)# percentage error = 2.287074
+X_history_weight_modgg <- ggpredict(X_history_weight_mod, c("relevant_history", "maximum_weight_loss"))
+plot(X_history_weight_modgg) + 
+  geom_point() +
+  xlab(label = "mouse_strain") +
+  ylab(label = bquote(atop("immune response intensity"))) +
+  theme_bw() +
+  ggtitle("Predicted immune response intensity by mouse strain")
+
+# winner?
+X_mouse_history_mod <- lm(X~mouse_strain + relevant_history, pca.data.swap)
+summary(X_mouse_history_mod)
+Anova(X_mouse_history_mod) # no residual significance, history has strongest effect
+sigma(X_mouse_history_mod)*100/mean(pca.data.swap$maximum_weight_loss)# percentage error = 1.85589
+
+X_mouse_history_modgg <- ggpredict(X_mouse_history_mod, c("mouse_strain","relevant_history"))
+plot(X_mouse_history_modgg) + 
+  geom_point() +
+  xlab(label = "mouse strain") +
+  ylab(label = bquote(atop("change in immune cell populations (%)"))) +
+  theme_bw() +
+  ggtitle("")
+
+
+
+# most complex for immune
+X_weight_mouse_history_mod <- lm(X~maximum_weight_loss + mouse_strain + relevant_history, pca.data.swap)
+summary(X_weight_mouse_history_mod) # strain effects remain more or less + strong infection effect
+Anova(X_weight_mouse_history_mod) # no residual significance, history has strongest effect
+sigma(X_weight_mouse_history_mod)*100/mean(pca.data.swap$maximum_weight_loss)# percentage error = 1.774119
+
+library(RColorBrewer)
+# Define the number of colors you want
+nb.cols <- 18
+mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
+# Create a ggplot with 18 colors 
+# Use scale_fill_manual
+ggplot(df) + 
+  geom_col(aes(name, Sepal.Length, fill = factor(Sepal.Length))) +
+  scale_fill_manual(values = mycolors) +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+
+X_weight_mouse_history_modgg <- ggpredict(X_weight_mouse_history_mod, c("maximum_weight_loss","mouse_strain", "relevant_history"))
+plot(X_weight_mouse_history_modgg) + 
+  geom_point() +
+  scale_fill_manual(values = mycolors) +
+  xlab(label = "weight loss") +
+  ylab(label = bquote(atop("change in immune cell populations (%)"))) +
+  theme_bw() +
+  ggtitle("")
+
+
 # anova this
-anova(X_mouse_mod, X_mouse_weight_history_mod,X_mouse_weight_mod)
+anova(X_mouse_history_mod, X_mouse_weight_history_mod,X_mouse_weight_mod)
 
 testDispersion(X_mouse_mod)
 testDispersion(X_mouse_weight_history_mod)
@@ -547,15 +638,7 @@ plot(wloss_history_modgg) +
   theme_bw() +
   ggtitle("Predicted weightloss by infection history")
 
-X_mouse_history_mod <- lm(X~mouse_strain + relevant_history, pca.data.swap)
-summary(X_mouse_history_mod)
-X_mouse_history_modgg <- ggpredict(X_mouse_history_mod, c("mouse_strain","relevant_history"))
-plot(X_mouse_history_modgg) + 
-  geom_point() +
-  xlab(label = "mouse strain") +
-  ylab(label = bquote(atop("change in immune cell populations (%)"))) +
-  theme_bw() +
-  ggtitle("")
+
 
 
 wloss_X <- lm(maximum_weight_loss~X, pca.data.swap)
@@ -573,7 +656,7 @@ ggplot(pca.data.swap, aes(maximum_weight_loss, X)) +
 
 
 
-
+summary(X_mouse_mod)
 X_mouse_modgg <- ggpredict(X_mouse_mod, c("mouse_strain"))
 plot(X_mouse_modgg) + 
   geom_point() +
@@ -581,6 +664,18 @@ plot(X_mouse_modgg) +
   ylab(label = bquote(atop("change in immune cell populations (%)"))) +
   theme_bw() +
   ggtitle("differences in immune cell populations between strains")
+
+X_history_mod <- lm(X~relevant_history, pca.data.swap)
+summary(X_history_mod)
+X_history_modgg <- ggpredict(X_history_mod, c("relevant_history"))
+plot(X_history_modgg) + 
+  geom_point() +
+  xlab(label = "mouse strain") +
+  ylab(label = bquote(atop("change in immune cell populations (%)"))) +
+  theme_bw() +
+  ggtitle("differences in immune cell populations between strains")
+
+
 
 wloss_X_modgg <- ggpredict(wloss_X_mod, c("X"))
 plot(wloss_X_modgg) + 
@@ -598,9 +693,7 @@ plot(wloss_X_modgg) +
 
 
 # graph wloss_history_mouse_mod
-library(RColorBrewer)
-nb.cols <- 13
-mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
+
 
 
 wloss_history_mouse_modgg <- ggpredict(wloss_history_mouse_mod, c("mouse_strain", "relevant_history"))
