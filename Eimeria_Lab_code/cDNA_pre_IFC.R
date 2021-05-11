@@ -6,16 +6,11 @@ OV16_17 <- read.csv("~/Mouse_Eimeria_Databasing/data/Eimeria_detection/FINALqpcr
 levels(factor(OV16_17$qPCRstatus)) # just checking for pos and neg only
 # assign Eimeria species
 OVsp <- read.csv("~/Mouse_Eimeria_Databasing/data/Eimeria_detection/Eimeria_species_assignment_14_17.csv")
-OVsp <- select(OVsp, Mouse_ID, Species)
+OVsp <- dplyr::select(OVsp, Mouse_ID, Species)
 
-a <- sapply(OVsp, is.factor)
-OVsp[a] <- lapply(OVsp[a], as.character)
-b <- sapply(OV16_17, is.factor)
-OV16_17[b] <- lapply(OV16_17[b], as.character)
-OVsp <- data.frame(OVsp)
-OV16_17 <- data.frame(OV16_17)
+OVsp$Mouse_ID <- gsub(" ", "", x = OVsp$Mouse_ID)
 
-OV16_17 <- merge(OV16_17, OVsp, by = "Mouse_ID", all.x = T)
+OV16_17 <- merge(OV16_17, OVsp, by = "Mouse_ID")
 OV16_17n <- subset(OV16_17, OV16_17$qPCRstatus == "negative")
 OV16_17p <- subset(OV16_17, OV16_17$qPCRstatus == "positive")
 # split into years and equalize positive to negative samples 50-50 with random sampling
