@@ -719,9 +719,15 @@ plot(wloss_history_mouse_X_modgg) +
 
 
 # compare more than visualy, AIC tab for the relevant models
-models <- list(wloss_history_X_mod, wloss_history_mouse_X_mod, wloss_history_mouse_mod)
-model.names <- c("wloss_history_X_mod", "wloss_history_mouse_X_mod", "wloss_history_mouse_mod")
+wloss_X_mod <- lm(maximum_weight_loss ~ X, pca.data.swap)
+wloss_X_history_mod <- lm(maximum_weight_loss ~ X + relevant_history, pca.data.swap)
+wloss_X_history_mouse_mod <- lm(maximum_weight_loss ~ X + relevant_history + mouse_strain, pca.data.swap)
+
+models <- list(wloss_X_mod, wloss_X_history_mod, wloss_X_history_mouse_mod)
+model.names <- c("wloss_X_mod", "wloss_X_history_mod", "wloss_X_history_mouse_mod")
+anova(wloss_X_mod, wloss_X_history_mod, wloss_X_history_mouse_mod)
 aictab(cand.set = models, modnames = model.names, sort = T)
+
 # add likelyhood tests
 
 # check with DHARMa for wloss_history_X_mod, wloss_history_mouse_X_mod, wloss_history_mouse_mod
