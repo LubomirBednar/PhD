@@ -767,10 +767,9 @@ summary(wloss_X_current_simpstrain_mod)
 
 
 
-# compare with full info model
+# compare with full info model CANT USE ANOVA BECAUSE NOT NESTED
 models1 <- list(wloss_X_history_mouse_mod, wloss_X_current_simpstrain_mod)
 model.names1 <- c("wloss_X_history_mouse_mod", "wloss_X_current_simpstrain_mod")
-anova(wloss_X_history_mouse_mod, wloss_X_current_simpstrain_mod)
 aictab(cand.set = models1, modnames = model.names1, sort = T)
 
 
