@@ -351,14 +351,21 @@ pca.data$mouse_strain <- factor(pca.data$mouse_strain,
                                      levels = c("SCHUNT_SCHUNT", "SWISS", "PWD_PWD", "BUSNA_STRA", "STRA_BUSNA",
                                                 "PWD_SCHUNT", "STRA_STRA", "STRA_SCHUNT", "PWD_BUSNA", "SCHUNT_PWD",
                                                 "SCHUNT_STRA", "BUSNA_BUSNA", "BUSNA_PWD"))
+pca.data$secondary_species <- factor(pca.data$secondary_species,
+                                     levels =  c("UNI", "FER", "FAL"))
 
-mod1 <- lm(relative_weight~primary_species*secondary_species+X+Y, pca.data)
+
+mod1 <- lm(relative_weight~X+Y, pca.data)
+mod1.1 <- lm(relative_weight ~ X, pca.data)
+mod1.2 <- lm(relative_weight ~ Y, pca.data)
 mod2 <- lm(relative_weight~secondary_species+X+Y, pca.data)
-mod3 <- lm(relative_weight~X+Y, pca.data)
+mod3 <- lm(relative_weight~secondary_species+mouse_strain+X+Y, pca.data)
               
-summary(mod1) # not enough power, groups go NA = rank deficient
-summary(mod2) # strong X effect
-summary(mod3) # strong X effect
+summary(mod1) 
+summary(mod1.1)
+summary(mod1.2)
+summary(mod2) 
+summary(mod3) 
 
 # this is very cool but we're using relative weight from day 8, which won't tell us much
 # make maximum OPG (OPG when available) and maximum weightloss columns ad test those
@@ -721,6 +728,9 @@ mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
 # #   ggtitle("Predicted weightloss by infection history and principal immune parameters")
 
 ############### weight loss explanation
+# use dataset without SWISS mice
+pca.data.swapval <- subset(pca.data.swap, pca.data.swap$mouse_strain == "SWISS")
+pca.data.swap <- subset(pca.data.swap, !pca.data.swap$mouse_strain == "SWISS")
 
 # compare more than visualy, AIC tab for the relevant models
 wloss_X_mod <- lm(maximum_weight_loss_challenge ~ X, pca.data.swap)
@@ -729,11 +739,7 @@ wloss_X_history_mod <- lm(maximum_weight_loss_challenge ~ X + eimeria_species_hi
 summary(wloss_X_history_mod)
 wloss_X_history_mouse_mod <- lm(maximum_weight_loss_challenge ~ X +eimeria_species_history + mouse_strain, pca.data.swap)
 summary(wloss_X_history_mouse_mod)
-
-models <- list(wloss_X_mod, wloss_X_history_mod, wloss_X_history_mouse_mod)
-model.names <- c("wloss_X_mod", "wloss_X_history_mod", "wloss_X_history_mouse_mod")
 anova(wloss_X_mod, wloss_X_history_mod, wloss_X_history_mouse_mod)
-aictab(cand.set = models, modnames = model.names, sort = T)
 
 # now build these to reflext wild better (only current infections and hybrid, mmd and mmm mouse strains)
 # already got secondary_species so let's code the mouse strains to simpler groups
@@ -750,27 +756,51 @@ pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "SCHUNT_PWD"] <- "Hybr
 pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "SCHUNT_STRA"] <- "Mmd"
 pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_BUSNA"] <- "Mmm"
 pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_PWD"] <- "Mmm"
+
+
+
 # build models to compare with previous ones from this 
 # order factors first
 pca.data.swap$simple_strain <- factor(pca.data.swap$simple_strain,
-                                           levels = c("SWISS", "Hybrid", "Mmm", "Mmd"))
+                                      levels = c("SWISS", "Mmm", "Mmd", "Hybrid"))
 pca.data.swap$secondary_species <- factor(pca.data.swap$secondary_species,
-                                      levels = c("UNI", "FER", "FAL"))
-
-
-
+                                          levels = c("UNI", "FER", "FAL"))
 
 wloss_X_current_mod <- lm(maximum_weight_loss_challenge ~ X + secondary_species, pca.data.swap)
 summary(wloss_X_current_mod)
 wloss_X_current_simpstrain_mod <- lm(maximum_weight_loss_challenge ~ X + secondary_species + simple_strain, pca.data.swap)
 summary(wloss_X_current_simpstrain_mod)
 
-
+# include validation dataset
+# TEMPORARY remove UNI:FAL as it is unique for this dataset
+pca.data.swapval <- subset(pca.data.swapval, !pca.data.swapval$eimeria_species_history == "UNI:FAL")
+predict(wloss_X_history_mod, newdata = pca.data.swapval, interval = "prediction")
+predict(wloss_X_current_mod, newdata = pca.data.swapval, interval = "prediction")
 
 # compare with full info model CANT USE ANOVA BECAUSE NOT NESTED
-models1 <- list(wloss_X_history_mouse_mod, wloss_X_current_simpstrain_mod)
-model.names1 <- c("wloss_X_history_mouse_mod", "wloss_X_current_simpstrain_mod")
-aictab(cand.set = models1, modnames = model.names1, sort = T)
+models <- list(wloss_X_history_mouse_mod, wloss_X_current_simpstrain_mod, 
+               wloss_X_mod, wloss_X_history_mod)
+model.names <- c("wloss_X_history_mouse_mod", "wloss_X_current_simpstrain_mod", "wloss_X_mod", 
+                  "wloss_X_history_mod")
+aictab(cand.set = models, modnames = model.names, sort = T)
+
+
+
+# 1. Add predictions 
+pred.int <- predict(wloss_X_history_mod, newdata = pca.data.swapval, interval = "prediction")
+mydata <- cbind(pca.data.swapval, pred.int)
+# 2. Regression line + confidence intervals
+library("ggplot2")
+p <- ggplot(mydata, aes(X, fit)) +
+  geom_point(aes(color = "predicted")) +
+  stat_smooth(method = lm)
+# 3. Add prediction intervals
+
+p + geom_point(data = mydata, 
+               mapping = aes(x = X, y = maximum_weight_loss_challenge, color = "original")) +
+  stat_smooth(method = lm) +
+  geom_line(aes(y = lwr), color = "red", linetype = "dashed")+
+  geom_line(aes(y = upr), color = "red", linetype = "dashed")
 
 
 ########################## add random forest
