@@ -3,7 +3,6 @@ library(dplyr)
 
 HZ <- read.csv("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data/Field_data/HZ10-19_Genotypes.csv")
 
-}
 
 ## Calculate the hybrid index
 get.HI <- function (x){
