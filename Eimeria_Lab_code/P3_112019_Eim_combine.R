@@ -30,7 +30,7 @@ P3b_record$labels <- sub("^", "P3b", P3b_record$labels)
 P3b_record$batch <- "b"
 P3_record <- rbind(P3a_record, P3b_record)
 P3_para <- merge(P3_record, P3_oocyst)
-write.csv(P3_para, "C:/Users/exemp/Documents/P3_para.csv")
+
 P3_para <- read.csv("C:/Users/exemp/Documents/P3_para.csv")
 
 P3_design <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P3_112019_Eim_design.csv")
