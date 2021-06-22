@@ -360,8 +360,8 @@ mycolors <- colorRampPalette(brewer.pal(8, "Set2"))(nb.cols)
 
 ############### weight loss explanation
 # use dataset without SWISS mice (validation and training)
-pca.data.swapval <- subset(pca.data.swap, pca.data.swap$mouse_strain == "SWISS")
-pca.data.swap <- subset(pca.data.swap, !pca.data.swap$mouse_strain == "SWISS")
+# pca.data.swapval <- subset(pca.data.swap, pca.data.swap$mouse_strain == "SWISS")
+# pca.data.swap <- subset(pca.data.swap, !pca.data.swap$mouse_strain == "SWISS")
 
 # now build these to reflext wild better (only current infections and hybrid, mmd and mmm mouse strains)
 # already got secondary_species so let's code the mouse strains to simpler groups
@@ -379,6 +379,7 @@ pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "SCHUNT_STRA"] <- "Mmd
 pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_BUSNA"] <- "Mmm"
 pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_PWD"] <- "Mmm"
 
+write.csv(pca.data.swap, "C:/Users/exemp/OneDrive/Documents/pca.data.swap.csv")
 # order factors first
 pca.data.swap$simple_strain <- factor(pca.data.swap$simple_strain,
                                       levels = c("SWISS", "Mmm", "Mmd", "Hybrid"))
@@ -386,9 +387,31 @@ pca.data.swap$secondary_species <- factor(pca.data.swap$secondary_species,
                                           levels = c("UNI", "FER", "FAL"))
 
 # make function for testing all the potential effects
-lm_pass <- function(a){
+interests <- names(select(pca.data.swap, X, Y, challenge_infection, mouse_strain, infection_history, 
+                          eimeria_species_challenge, eimeria_species_history, relative_weight, CD4, Treg, 
+                          Div_Treg, Treg17, Th1, Div_Th1, Th17, Div_Th17,CD8, Act_CD8, Div_Act_CD8, IFNy_CD4,
+                          IFNy_CD8, secondary_species, relevant_history, simple_strain))
+
+RHS <- ~ interests
+LHS <- y ~ 1
+attr(terms(RHS), 'term.labels')
+
+combine_formula <- function(LHS, RHS){
+  .terms <- lapply(RHS, terms)
+  new_terms <- unique(unlist(lapply(.terms, attr, which = 'term.labels')))
+  response <- as.character(LHS)[2]
+  
+  reformulate(new_terms, response)
+  
+  
+}
+
+reformulate(termlabels = interests, response = "relative_weight")
+
+
+lm.pass <- function(x){
   variables <- colnames(pca.data.swap)[c(2,3,5,6,7,9,30,31)]
-  models <- lm(maximum_weight_loss_challenge~seq_along(variables), pca.data.swap)
+  models <- lm(maximum_weight_loss_challenge~variables, pca.data.swap)
   summary(models)
 }
 

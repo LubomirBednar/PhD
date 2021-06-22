@@ -15,10 +15,14 @@ E10bR$batch <- "b"
 E10D <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E10_112020_Eim_DESIGN.csv")
 
 # merge together into E10R + remove redundants
-E10aR <- dplyr::select(E10aR, EH_ID, dpi, labels, weight, batch, relative_weight, weight_dpi0, feces_weight, mouse_strain, experiment)
-E10aRD <- merge(E10aR, E10D)
+E10aR <- dplyr::select(E10aR, EH_ID, dpi, labels, weight, batch, relative_weight, weight_dpi0, feces_weight, experiment)
+E10bR <- dplyr::select(E10bR, EH_ID, dpi, labels, weight, batch, relative_weight, weight_dpi0, feces_weight, experiment)
+
+E10aRD <- merge(E10aR, E10D, all = T)
+E10aRD$challenge_infection <- NA
 
 E10bRD <- merge(E10bR, E10D)
+E10bRD$primary_infection <- NA
 rm(E10aR, E10bR)
 # merge together into E10D and remove redundants
 E10 <- rbind(E10aRD, E10bRD)
