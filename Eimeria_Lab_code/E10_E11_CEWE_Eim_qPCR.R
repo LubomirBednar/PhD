@@ -3,13 +3,19 @@ library(dplyr)
 library(reshape2)
 library(tidyr)
 
-a <- read.csv("./E10_E11_qPCR_temp/E10_E11_CEWE_qPCR_01_repeat.csv")
-b <- read.csv("./E10_E11_qPCR_temp/E10_E11_CEWE_qPCR_02_Franzi.csv")
+# load in files
+a <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/E10_E11_CEWE_qPCR_01_repeat.csv")
+b <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/E10_E11_CEWE_qPCR_02_Franzi.csv")
 b$Sample <- paste0("LM0", b$Sample)
-c <- read.csv("./E10_E11_qPCR_temp/E10_E11_Eim_CEWE_qPCR.csv")
-d <- read.csv("./E10_E11_qPCR_temp/E10_E11_qPCR_CEWE_01_01.csv")
+c <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/E10_E11_CEWE_qPCR.csv")
+d <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/E10_E11_CEWE_qPCR_01_01.csv")
+e <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/E10_E11_qPCR_CEWE_05.csv")
+f <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/E10_E11_qPCR_CEWE_06.csv")
+# add MCs
+g <- read.csv("C:/Users/exemp/OneDrive/Desktop/E10_E11_qPCRs/")
 
-DF <- bind_rows(a, b, c, d)
+# combine
+DF <- bind_rows(a, b, c, d, e, f)
 DF <- select(DF, Sample, Cq, Target)
 DF$Target[DF$Target == "Mus"] <- "mouse"
 DF$Target[DF$Target == "CDC42"] <- "mouse"
@@ -21,10 +27,10 @@ DF <- DF %>% group_by(Sample, Target) %>% summarise(across(everything(), list(me
 DF <- pivot_wider(data = DF, names_from = Target, values_from = Cq_1)
 DF$delta <- DF$mouse - DF$eimeria
 
-design1 <- read.csv("./GitHub/Eimeria_Lab/data/Experimental_design/E10_112020_Eim_DESIGN.csv")
+design1 <- read.csv("~/GitHub/Eimeria_Lab/data/Experimental_design/E10_112020_Eim_DESIGN.csv")
 design1$birthday <- NA
 design1$EH_ID <- gsub("_", "", design1$EH_ID)
-design2 <- read.csv("./GitHub/Eimeria_Lab/data/Experimental_design/E11_012021_Eim_DESIGN.csv")
+design2 <- read.csv("~/GitHub/Eimeria_Lab/data/Experimental_design/E11_012021_Eim_DESIGN.csv")
 
 design <- bind_rows(design1, design2)
 names(DF)[names(DF) == "Sample"] <- "EH_ID"
