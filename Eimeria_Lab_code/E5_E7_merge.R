@@ -1,5 +1,5 @@
 library(dplyr)
-
+# weight and oocysts
 E5O <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E5_062018_Eim_oocyst.csv")
 E5O$EH_ID <- NULL
 E5O$OPG <- NULL
@@ -19,3 +19,14 @@ EW <- rbind(E5W, E7W)
 
 write.csv(EO, "C:/Users/exemp/OneDrive/Documents/GitHub/Eimeria_Lab/data/Experiment_results/E5_062018_Eim_oocyst.csv")
 write.csv(EW, "C:/Users/exemp/OneDrive/Documents/GitHub/Eimeria_Lab/data/Experiment_results/E5_062018_Eim_record.csv")
+# design
+E5D <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E5_062018_Eim_DESIGN.csv")
+E5D$experiment <- 
+E7D <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E7_112018_Eim_DESIGN.csv")
+
+
+ED <- merge(E5D, E7D, all.x = T)
+
+
+# qPCRs
+q <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_CEWE_qPCR.csv")
