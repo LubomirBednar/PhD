@@ -3,8 +3,10 @@ library(dplyr)
 E5O <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E5_062018_Eim_oocyst.csv")
 E5O$EH_ID <- NULL
 E5O$OPG <- NULL
+E5O$X <- NULL
 E5W <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E5_062018_Eim_record.csv")
 E5W$weightloss <- NULL
+E5W$X <- NULL
 
 E7O <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E7_112018_Eim_oocyst.csv")
 E7O$OPG <- NULL

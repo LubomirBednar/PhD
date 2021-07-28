@@ -61,9 +61,18 @@ CLSimmuno <- select(CLS, EH_ID, experiment, dpi, labels, delta, IFNy_CEWE, Eim_M
 CLSimmuno <- subset(CLSimmuno, CLSimmuno$dpi == 8)
 CLSimmuno <- subset(CLSimmuno, CLSimmuno$Position == "mLN")
 
+CLS_primary <- subset(CLS, CLS$batch == "a")
+CLS_primary$challenge_infection <- NA
+
+CLS_challenge <- subset(CLS, CLS$batch == "b")
+CLS_challenge$primary_infection <- NA
+
+CLS <- rbind(CLS_primary, CLS_challenge)
+
 CLS <- select(CLS, "EH_ID", "labels", "experiment", "dpi", "relative_weight", "mouse_strain", 
             "challenge_infection", "primary_infection", "infection_history", "OPG")
 CLS <- distinct(CLS)
+
 
 # join them together
 WDS <- rbind(E6, E7)
@@ -102,12 +111,37 @@ WDS$eimeria_species_history[WDS$infection_history == "UNI:E64"] <- "UNI:FER"
 
 WDS_primary <- subset(WDS, !is.na(WDS$primary_infection))
 WDS_challenge <- subset(WDS, !is.na(WDS$challenge_infection))
+
 # shuld have a dataset with all weight data and some OPG data
 
-ggplot(WDS_primary, aes(x = dpi, y = relative_weight, color = primary_infection)) +
-geom_jitter(width = 0.2) +
-geom_smooth() + 
-facet_wrap(~mouse_strain)
+ggplot(WDS_primary, aes(x = dpi, y = relative_weight, color = eimeria_species_primary)) +
+  geom_jitter(width = 0.2) +
+  geom_smooth() +
+  labs(y = "weight relative to dpi 0", x = "days post infection", color = "infecting species") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+   ggtitle("infection intensities in wild and wild-derived mice")
+  
+ggplot(WDS_challenge, aes(x = dpi, y = relative_weight, color = eimeria_species_challenge)) +
+  geom_jitter(width = 0.2) +
+  geom_smooth() +
+  labs(y = "weight relative to dpi 0", x = "days post infection", color = "infecting species") +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold")) +
+  ggtitle("infection intensities in wild and wild-derived mice")
+
+
+
 
 ggplot(WDS_primary, aes(x = dpi, y = relative_weight, color = primary_infection)) +
 geom_jitter(width = 0.2) +
@@ -380,6 +414,37 @@ pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_BUSNA"] <- "Mmm
 pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_PWD"] <- "Mmm"
 
 write.csv(pca.data.swap, "C:/Users/exemp/OneDrive/Documents/pca.data.swap.csv")
+
+#################### add and process IFC runs
+IFC1 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC1.csv")
+IFC2 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC2.csv")
+IFC3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC3.csv")
+IFC4 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC4.csv")
+IFC5 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC5.csv")
+
+IFC <- bind_rows(IFC1, IFC2, IFC3, IFC4, IFC5)
+IFC$EH_ID <- as.character(sub("A0729", "AA0729", IFC$EH_ID))
+# remove unsuccessful amplifications
+IFC <- subset(IFC, IFC$Value != 999)
+IFC <- IFC %>% dplyr::group_by(EH_ID, Target) %>% dplyr::summarise(Ct = mean(Value))
+IFC <- distinct(IFC)
+
+IFC.wide <- pivot_wider(IFC, names_from = Target, values_from = Ct)
+
+pca.data.swap <- merge(pca.data.swap, IFC.wide, all.x = T)
+
+# ggplot(pca.data.swap, aes(x = dpi, y = relative_weight, color = eimeria_species_primary)) +
+#   geom_jitter(width = 0.2) +
+#   geom_smooth() +
+#   labs(y = "weight relative to dpi 0", x = "days post infection", color = "infecting species") +
+#   theme(axis.text=element_text(size=12, face = "bold"),
+#         title = element_text(size = 16, face = "bold"),
+#         axis.title=element_text(size=14,face="bold"),
+#         strip.text.x = element_text(size = 14, face = "bold"),
+#         strip.text.y = element_text(size = 14, face = "bold"),
+#         legend.text = element_text(size=12, face = "bold"),
+#         legend.title = element_text(size = 12, face = "bold")) +
+#   ggtitle("infection intensities in wild and wild-derived mice")
 # order factors first
 pca.data.swap$simple_strain <- factor(pca.data.swap$simple_strain,
                                       levels = c("SWISS", "Mmm", "Mmd", "Hybrid"))
