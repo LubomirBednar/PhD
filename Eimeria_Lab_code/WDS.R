@@ -49,6 +49,14 @@ E11 <- select(E11, "EH_ID", "labels", "experiment", "dpi", "relative_weight", "m
 E11$mouse_strain <- as.character(sub("PWD", "PWD_PWD", E11$mouse_strain))
 E11$mouse_strain <- as.character(sub("SCHUNT", "SCHUNT_SCHUNT", E11$mouse_strain))
 
+E11q <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E11_012021_Eim_CEWE_qPCR.csv")
+E11q <- select(E11q, EH_ID, delta, Eim_MC)
+E11q$dpi <- 8
+E11q$primary_infection <- NA
+
+E11 <- merge(E11, E11q, all.x = T)
+
+
 # CLS
 CLS <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/CLS_complete.csv")
 CLS$X <- NULL 
@@ -57,9 +65,9 @@ names(CLS)[names(CLS) == "Strain"] <- "mouse_strain"
 names(CLS)[names(CLS) == "primary"] <- "primary_infection"
 names(CLS)[names(CLS) == "challenge"] <- "challenge_infection"
 CLSimmuno <- select(CLS, EH_ID, experiment, dpi, labels, delta, IFNy_CEWE, Eim_MC, EXP_type, CD4, Treg, Div_Treg, Position,
-                  Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
+                    Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8, batch)
 CLSimmuno <- subset(CLSimmuno, CLSimmuno$dpi == 8)
-CLSimmuno <- subset(CLSimmuno, CLSimmuno$Position == "mLN")
+CLSimmuno <- subset(CLSimmuno, CLSimmuno$batch == "b")
 
 CLS_primary <- subset(CLS, CLS$batch == "a")
 CLS_primary$challenge_infection <- NA
@@ -111,6 +119,7 @@ WDS$eimeria_species_history[WDS$infection_history == "UNI:E64"] <- "UNI:FER"
 
 WDS_primary <- subset(WDS, !is.na(WDS$primary_infection))
 WDS_challenge <- subset(WDS, !is.na(WDS$challenge_infection))
+WDS_primary$OPG <- as.numeric(WDS_primary$OPG)
 
 # shuld have a dataset with all weight data and some OPG data
 
@@ -125,12 +134,12 @@ ggplot(WDS_primary, aes(x = dpi, y = relative_weight, color = eimeria_species_pr
         strip.text.y = element_text(size = 14, face = "bold"),
         legend.text = element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
-   ggtitle("infection intensities in wild and wild-derived mice")
+   ggtitle("Weight loss during primary infections")
   
-ggplot(WDS_challenge, aes(x = dpi, y = relative_weight, color = eimeria_species_challenge)) +
+ggplot(WDS_primary, aes(x = dpi, y = OPG, color = eimeria_species_primary)) +
   geom_jitter(width = 0.2) +
   geom_smooth() +
-  labs(y = "weight relative to dpi 0", x = "days post infection", color = "infecting species") +
+  labs(y = "oocysts per gram of feces", x = "days post infection", color = "infecting species") +
   theme(axis.text=element_text(size=12, face = "bold"),
         title = element_text(size = 16, face = "bold"),
         axis.title=element_text(size=14,face="bold"),
@@ -138,7 +147,7 @@ ggplot(WDS_challenge, aes(x = dpi, y = relative_weight, color = eimeria_species_
         strip.text.y = element_text(size = 14, face = "bold"),
         legend.text = element_text(size=12, face = "bold"),
         legend.title = element_text(size = 12, face = "bold")) +
-  ggtitle("infection intensities in wild and wild-derived mice")
+  ggtitle("Oocyst shedding during primary infection")
 
 
 
@@ -186,6 +195,10 @@ E11immuno <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/mast
 E11immuno <- select(E11immuno, EH_ID, dpi, labels, experiment, CD4, Treg, Div_Treg, Position,
                   Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
 
+############ not finished IFNy CEWE
+# E11inf <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10_E11_Eim_CEWE_ELISA.csv")
+# E10inf <- 
+
 E11immuno$delta <- "NA"
 E11immuno$IFNy_CEWE <- "NA"
 E11immuno$Eim_MC <- "NA"
@@ -194,25 +207,82 @@ E11immuno$EXP_type <- "WDS"
 E_immuno <- rbind(E7immuno, E11immuno)
 E_immuno <- rbind(E_immuno, CLSimmuno)
 
+
+#################### add and process IFC runs
+IFC1 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC1.csv")
+IFC2 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC2.csv")
+IFC3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC3.csv")
+IFC4 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC4.csv")
+IFC5 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC5.csv")
+
+IFC <- bind_rows(IFC1, IFC2, IFC3, IFC4, IFC5)
+IFC$EH_ID <- as.character(sub("A0729", "AA0729", IFC$EH_ID))
+# remove unsuccessful amplifications
+IFC <- subset(IFC, IFC$Value != 999)
+
+IFC <- IFC %>% dplyr::group_by(EH_ID, Target) %>% dplyr::summarise(Ct = mean(Value, na.rm = T))
+
+IFC <- distinct(IFC)
+
+IFC.wide <- pivot_wider(IFC, names_from = Target, values_from = Ct)
+IFC.wide <- data.frame(IFC.wide)
+# write.csv(IFC.wide, "~/GitHub/PhD/IFC.wide.csv")
+
+# IFC.wide <- read.csv("C:/Users/exemp/OneDrive/Documents/GitHub/PhD/IFC.wide.csv")
+# IFC.wide$X <- NULL
+
+IFC.wide[2:ncol(IFC.wide)] <- IFC.wide[2:ncol(IFC.wide)]-IFC.wide[,18]
+
+# refGenes <- c("PPIB", "GAPDH")
+# targetGenes <- c("CASP1","CXCL9","CXCR3","IDO1", "IFNG", "IL10", "IL12A","IL13",
+#                  "IL1RN","IRGM1","MPO","MUC2","MUC5AC","MYD88","NCR1", "PRF1", "RETNLB", 
+#                  "SOCS1","TICAM1","TNF","IL6","IL17A")
+# 
+# IFC.wide <- IFC.wide %>% mutate(refMean = rowMeans(select(., refGenes)))
+# IFC.wide <- data.frame(IFC.wide)
+# refMean <- as.numeric(IFC.wide$refMean)
+
+IFC.wide$PPIB <- NULL
+IFC.wide$GAPDH <- NULL
+IFC.wide$dpi <- 8
+
+# merge into WDS
 WDS_challenge <- merge(WDS_challenge, E_immuno, all.x = T)
+WDS_challenge <- merge(WDS_challenge, IFC.wide, all.x = T)
+
+
+
+############################################################################################
+IFC.long <- pivot_longer(IFC.wide, cols = c("CASP1","CXCL9","CXCR3","IDO1", "IFNG", "IL10", "IL12A","IL13",
+                                            "IL1RN","IRGM1","MPO","MUC2","MUC5AC","MYD88","NCR1", "PRF1", "RETNLB", 
+                                            "SOCS1","TICAM1","TNF","IL6","IL17A"))
+
+names(IFC.long)[names(IFC.long) == "name"] <- "Target"
+names(IFC.long)[names(IFC.long) == "value"] <- "Ct"
 
 ggimmuno <- pivot_longer(E_immuno, cols = c("Div_Treg", "Treg", "CD4", "Treg17", "Th1", "Div_Th1", "Th17", "Div_Th17",
                                           "CD8", "Act_CD8", "Div_Act_CD8", "IFNy_CD4", "IFNy_CD8"))
 
-ggplot(ggimmuno, aes(name, value, color = experiment)) +
-  geom_boxplot() + 
+
+ggimmuno <- merge(ggimmuno, IFC.long)
+
+ggplot(ggimmuno, aes(x = Target, y = Ct, color = Target)) +
+  geom_boxplot() +
   facet_wrap(~Eim_MC)
 
 ################ explore PCA
 WDS_PCA <- subset(WDS_challenge, WDS_challenge$dpi == 8)
 WDS_PCA <- subset(WDS_PCA, WDS_PCA$Position == "mLN")
 WDS_PCA <- select(WDS_PCA, EH_ID, #challenge_infection, mouse_strain, infection_history, 
-                CD4, Treg, Div_Treg, Treg17,
-                Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
-WDS_PCA <- na.omit(WDS_PCA)
+                CD4, Treg, Div_Treg, Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8, 
+                # CASP1, CXCL9, CXCR3, IDO1,  IFNG,  IL10,  IL12A, IL13, IL1RN, IRGM1, MPO, MUC2, MUC5AC, MYD88, NCR1, PRF1,  RETNLB,  
+                # SOCS1, TICAM1, TNF, IL6, IL17A)
+)
+
+# WDS_PCA <- na.omit(WDS_PCA)
 WDS_PCA <- distinct(WDS_PCA)
 WDS_PCA <- WDS_PCA %>% remove_rownames %>% column_to_rownames(var="EH_ID")
-pca <- prcomp(WDS_PCA, scale = T, center = T)
+pca <- prcomp(na.omit(WDS_PCA), center = TRUE, scale = TRUE)
 pca.var <- pca$sdev^2
 pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
 barplot(pca.var.per, main = "Scree Plot", xlab = "Principal component",
@@ -226,9 +296,11 @@ pca.data <- remove_rownames(pca.data)
 WDS_PCA <- subset(WDS_challenge, WDS_challenge$dpi == 8)
 WDS_PCA <- subset(WDS_PCA, WDS_PCA$Position == "mLN")
 WDS_PCA <- select(WDS_PCA, EH_ID, experiment, challenge_infection, mouse_strain, infection_history,
-                eimeria_species_challenge, eimeria_species_history,
-                relative_weight, CD4, Treg, Div_Treg, Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8,
-                Act_CD8, Div_Act_CD8, IFNy_CD4, IFNy_CD8)
+                eimeria_species_challenge, eimeria_species_history, Eim_MC,
+                relative_weight, CD4, Treg, Div_Treg, Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, 
+                IFNy_CD4, IFNy_CD8#, CASP1, CXCL9, CXCR3, IDO1,  IFNG,  IL10, IL12A, IL13, IL1RN, IRGM1, MPO, MUC2, 
+                #MUC5AC, MYD88, NCR1, PRF1,  RETNLB, SOCS1, TICAM1, TNF, IL6, IL17A)
+)
 pca.data <- merge(pca.data, WDS_PCA, by = "EH_ID")
 loading_scores <- pca$rotation[,1]
 scores <- abs(loading_scores)
@@ -251,7 +323,7 @@ labs(fill = "") +
 geom_text(aes(label = pca.var.per)) +
 theme_bw()
 
-ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = eimeria_species_challenge)) +
+ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = Eim_MC)) +
 geom_point(size = 3)+
 xlab(paste("PC1 - ", pca.var.per[1], "%", sep = "")) +
 ylab(paste("PC2 - ", pca.var.per[2], "%", sep = "")) +
@@ -264,7 +336,11 @@ theme(axis.text=element_text(size=12, face = "bold"),
       legend.text = element_text(size=12, face = "bold"),
       legend.title = element_text(size = 12, face = "bold"))+
 ggtitle("T-cell populations PCA by challenge infection") +
-labs(color='infection species') 
+labs(color='infection') 
+
+
+
+
 # looks good, test for batch independence, add experiment column
 ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = experiment)) +
 geom_point(size = 3)+
@@ -335,8 +411,30 @@ names(max_weight_challenge)[names(max_weight_challenge) == "relative_weight"] <-
 # now this gets complicated. infection_history needs maximum weightloss, but tor eflect primary infections which
 # are in challenge. and current infections need chalenge weight loss. Otherwise infected:uninfected mess up models
 
+#################### same for oocysts
+max_oocyst_primary <- WDS_primary %>% select(EH_ID, OPG, primary_infection, 
+                                             challenge_infection, infection_history) 
+max_oocyst_challenge <- WDS_challenge %>% select(EH_ID, OPG, primary_infection, 
+                                                 challenge_infection, infection_history)
+# except that this uses only data from challenge for primary:uni
+max_oocyst_primary <- max_oocyst_primary[!is.na(max_oocyst_primary$OPG), ]
+max_oocyst_challenge <- max_oocyst_challenge[!is.na(max_oocyst_challenge$OPG),]
+# creates weird 1 sample with 0 so remove it
+# max_weight_challenge <- max_weight_challenge[ !(max_weight_challenge$EH_ID %in% "LM0350"),]
+# max_OPG<- WDS %>% select(EH_ID, OPG)
+
+# max_OPG$OPG <- as.numeric(as.character(max_OPG$OPG))
+max_oocyst_primary <- max_oocyst_primary %>% dplyr::group_by(EH_ID) %>% dplyr::summarise(OPG = max(OPG, na.rm = T))
+max_oocyst_challenge <- max_oocyst_challenge %>% dplyr::group_by(EH_ID) %>% dplyr::summarise(OPG = max(OPG, na.rm = T))
+# max_OPG <- max_OPG %>% dplyr::group_by(EH_ID) %>% dplyr::summarise(OPG = max(OPG, na.rm = T))
+names(max_oocyst_primary)[names(max_oocyst_primary) == "OPG"] <- "maximum_OPG_primary"
+names(max_oocyst_challenge)[names(max_oocyst_challenge) == "OPG"] <- "maximum_OPG_challenge"
+
+
 pca.data1 <- merge(pca.data, max_weight_primary, by = "EH_ID")
 pca.data1 <- merge(pca.data1, max_weight_challenge, by = "EH_ID")
+pca.data1 <- merge(pca.data1, max_oocyst_primary, by = "EH_ID")
+pca.data1 <- merge(pca.data1, max_oocyst_challenge, by = "EH_ID")
 
 # anything that is infected:uninfected needs to be the in the final maximum weightloss column from primary_max_WLoss
 # can do min across both columns but that didnt work because its non disciminating to our criteria so scrapping
@@ -415,23 +513,39 @@ pca.data.swap$simple_strain[pca.data.swap$mouse_strain == "BUSNA_PWD"] <- "Mmm"
 
 write.csv(pca.data.swap, "C:/Users/exemp/OneDrive/Documents/pca.data.swap.csv")
 
-#################### add and process IFC runs
-IFC1 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC1.csv")
-IFC2 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC2.csv")
-IFC3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC3.csv")
-IFC4 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC4.csv")
-IFC5 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/IFC5.csv")
 
-IFC <- bind_rows(IFC1, IFC2, IFC3, IFC4, IFC5)
-IFC$EH_ID <- as.character(sub("A0729", "AA0729", IFC$EH_ID))
-# remove unsuccessful amplifications
-IFC <- subset(IFC, IFC$Value != 999)
-IFC <- IFC %>% dplyr::group_by(EH_ID, Target) %>% dplyr::summarise(Ct = mean(Value))
-IFC <- distinct(IFC)
 
-IFC.wide <- pivot_wider(IFC, names_from = Target, values_from = Ct)
 
-pca.data.swap <- merge(pca.data.swap, IFC.wide, all.x = T)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ggplot(pca.data.swap, aes(x = dpi, y = relative_weight, color = eimeria_species_primary)) +
 #   geom_jitter(width = 0.2) +
@@ -457,8 +571,13 @@ pca.data.swap$secondary_species <- factor(pca.data.swap$secondary_species,
                           # Div_Treg, Treg17, Th1, Div_Th1, Th17, Div_Th17,CD8, Act_CD8, Div_Act_CD8, IFNy_CD4,
                           # IFNy_CD8, secondary_species, relevant_history, simple_strain))
 
+pca.data.swap$maximum_OPG_challenge <- as.numeric(pca.data.swap$maximum_OPG_challenge)
+wloss_X_current_simpstrain_OPG_mod <- lm(maximum_weight_loss_challenge ~ X + secondary_species + simple_strain + 
+                                         maximum_OPG_challenge, pca.data.swap)
+summary(wloss_X_current_simpstrain_OPG_mod)
 
-
+OPG_X_current_mouse_mod <- lm(maximum_OPG_challenge ~ X + secondary_species + mouse_strain, pca.data.swap)
+summary(OPG_X_current_mouse_mod)
 
 wloss_X_mod <- lm(maximum_weight_loss_challenge ~ X, pca.data.swap)
 summary(wloss_X_mod)
@@ -475,7 +594,7 @@ summary(wloss_X_current_simpstrain_mod)
 
 # include validation dataset
 # TEMPORARY remove UNI:FAL as it is unique for this dataset
-pca.data.swapval <- subset(pca.data.swapval, !pca.data.swapval$eimeria_species_history == "UNI:FAL")
+pca.data.swapval <- subset(pca.data.swap, !pca.data.swap$eimeria_species_history == "UNI:FAL")
 predict(wloss_X_history_mod, newdata = pca.data.swapval, interval = "prediction")
 predict(wloss_X_current_mod, newdata = pca.data.swapval, interval = "prediction")
 
@@ -493,13 +612,13 @@ pred.int <- predict(wloss_X_history_mod, newdata = pca.data.swapval, interval = 
 mydata <- cbind(pca.data.swapval, pred.int)
 # 2. Regression line + confidence intervals
 library("ggplot2")
-p <- ggplot(mydata, aes(X, fit)) +
+p <- ggplot(mydata, aes(maximum_weight_loss_challenge, fit)) +
   geom_point(aes(color = "predicted")) +
   stat_smooth(method = lm)
 # 3. Add prediction intervals
 
 p + geom_point(data = mydata, 
-               mapping = aes(x = X, y = maximum_weight_loss_challenge, color = "original")) +
+               mapping = aes(x = fit, y = maximum_weight_loss_challenge, color = "original")) +
   stat_smooth(method = lm) +
   geom_line(aes(y = lwr), color = "red", linetype = "dashed")+
   geom_line(aes(y = upr), color = "red", linetype = "dashed")

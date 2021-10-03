@@ -16,6 +16,8 @@ FACSraw3 <- read_xlsx("./Mouse_Eimeria_Databasing/data/Field_data/HZ19_FACS_raw.
 FACSraw4 <- read_xlsx("./Mouse_Eimeria_Databasing/data/Field_data/HZ19_FACS_raw.xlsx", sheet = 4)
 
 
+
+
 # extract sample names and position 
 FACSraw1$Mouse_ID <-gsub("\\d+: (mLN|spleen)_(\\d{3})_\\d{3}.fcs", "AA_0\\2", FACSraw1$sample)
 FACSraw1$Position <- gsub("\\d+: (mLN|spleen)_(\\d{3})_\\d{3}.fcs", "\\1", FACSraw1$sample)
@@ -69,6 +71,91 @@ FACS[, 1:14] <- sapply(FACS[, 1:14], as.numeric)
 FACS$Position <- as.factor(FACS$Position)
 # write out
 write.csv(FACS, "/Users/Luke Bednar/Mouse_Eimeria_Databasing/data/HZ19_MES_FACS.csv")
+
+###########################################################################
+FACS <- read.csv("https://raw.githubusercontent.com/derele/Mouse_Eimeria_Field/master/data_input/HZ19_immuno.csv")
+FACSmln <- subset(FACS, FACS$Position == "mLN")
+
+FACSmln <- select(FACSmln, Mouse_ID, CD4, Treg, Div_Treg, Treg17, Th1, Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, 
+                  IFNy_CD4, IFNy_CD8)
+
+FACSmln <- FACSmln %>% remove_rownames %>% column_to_rownames(var="Mouse_ID")
+
+pca <- prcomp(na.omit(FACSmln), center = TRUE, scale = TRUE)
+pca.var <- pca$sdev^2
+pca.var.per <- round(pca.var/sum(pca.var)*100, 1)
+barplot(pca.var.per, main = "Scree Plot", xlab = "Principal component",
+        ylab = "Percent Variation")
+
+pca.data <- data.frame(Sample=rownames(pca$x),
+                       X = pca$x[,1],
+                       Y = pca$x[,2])
+names(pca.data)[names(pca.data) == "Sample"] <- "Mouse_ID"
+pca.data <- remove_rownames(pca.data)
+FACSmln <- select(FACS, Mouse_ID, EXP_type, Position, MC.Eimeria, delta, IFNy, CD4, Treg, Div_Treg, Treg17, Th1, 
+                  Div_Th1, Th17, Div_Th17, CD8, Act_CD8, Div_Act_CD8, 
+                  IFNy_CD4, IFNy_CD8#, CASP1, CXCL9, CXCR3, IDO1,  IFNG,  IL10, IL12A, IL13, IL1RN, IRGM1, MPO, MUC2, 
+                  #MUC5AC, MYD88, NCR1, PRF1,  RETNLB, SOCS1, TICAM1, TNF, IL6, IL17A)
+)
+FACSmln <- subset(FACSmln, FACSmln$Position == "mLN")
+FACSmln <- distinct(FACSmln)
+
+pca.data <- merge(pca.data, FACSmln, by = "Mouse_ID")
+loading_scores <- pca$rotation[,1]
+scores <- abs(loading_scores)
+score_ranked <- sort(scores, decreasing = T)
+top10 <- names(score_ranked[1:13])
+pca$rotation[top10,1]
+pca.var.per.df <- cbind(pca.var.per, top10)
+pca.var.per.df <- data.frame(pca.var.per.df)
+pca.var.per.df$pca.var.per <- as.numeric(as.character(pca.var.per.df$pca.var.per))
+pca.var.per.df$top10 <- factor(pca.var.per.df$top10,levels = top10)
+
+ggplot(pca.var.per.df, aes(top10, pca.var.per, fill = top10)) +
+  geom_col() +
+  theme(strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold")) +
+  scale_x_discrete(name ="Cell populations") +
+  scale_y_discrete(name ="% of variation explained") +
+  labs(fill = "") +
+  
+  geom_text(aes(label = pca.var.per)) +
+  theme_bw()
+
+# remove AA0791 and 0699 because it's very strange (probably bad measurement)
+pca.data <- pca.data[pca.data$Mouse_ID != "AA_0791", ]
+pca.data <- pca.data[pca.data$Mouse_ID != "AA_0699", ]
+
+ggplot(subset(pca.data, !is.na(pca.data$MC.Eimeria)), aes(x = X, y = Y, label = Mouse_ID, color = MC.Eimeria)) +
+  geom_point(size = 3)+
+  xlab(paste("PC1 - ", pca.var.per[1], "%", sep = "")) +
+  ylab(paste("PC2 - ", pca.var.per[2], "%", sep = "")) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"))+
+  ggtitle("T-cell populations PCA by infection status") +
+  labs(color='infected') 
+# looks good, test for batch independence, add experiment column
+ggplot(data = pca.data, aes(x = X, y = Y, label = EH_ID, color = experiment)) +
+  geom_point(size = 3)+
+  xlab(paste("PC1 - ", pca.var.per[1], "%", sep = "")) +
+  ylab(paste("PC2 - ", pca.var.per[2], "%", sep = "")) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12, face = "bold"),
+        title = element_text(size = 16, face = "bold"),
+        axis.title=element_text(size=14,face="bold"),
+        strip.text.x = element_text(size = 14, face = "bold"),
+        strip.text.y = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size=12, face = "bold"),
+        legend.title = element_text(size = 12, face = "bold"))+
+  ggtitle("Checking for batch effect") +
+  labs(color='Experiment ID') 
+
 # # write out long for HZ19 immuno
 # SpleenDF <- filter(FACS, Position == "spleen")
 # mLNDF <- filter(FACS, Position == "mLN")
