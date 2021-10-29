@@ -12,7 +12,7 @@ library(AICcmodavg) # Akaines information criterion
 # WILD: Hybrid Index (HI), oocysts, ELISA, intensity, gene expression, FACS
 
 
-
+# 
 # LAB DESIGN
 design_E5 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E57_xxxxx_Eim_DESIGN.csv")
 design_E10 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/E10_112020_Eim_DESIGN.csv")
@@ -20,24 +20,24 @@ design_E11 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/mas
 design_P3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P3_112019_Eim_design.csv")
 design_P4 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experimental_design/P4_082020_Eim_DESIGN.csv")
 
-## standardise to in common columns
-design_E5 <- select(design_E5, 
-                    EH_ID, # unique mouse identifier
-                    experiment, # identifier of experiment
-                    mouse_strain, # genetic background, equivalent to HI in wild
-                    primary_infection, 
-                    challenge_infection,
-                    infection_history # combination of primary and challenge infection
-                    )
+# #standardise to in common columns
+# design_E5 <- select(design_E5, 
+#                     EH_ID, unique mouse identifier
+#                     experiment, identifier of experiment
+#                     mouse_strain, genetic background, equivalent to HI in wild
+#                     primary_infection, 
+#                     challenge_infection,
+#                     infection_history combination of primary and challenge infection
+#                     )
 
 design_E10 <- select(design_E10, EH_ID, experiment, mouse_strain, primary_infection, challenge_infection, infection_history)
 design_E11 <- select(design_E11, EH_ID, experiment, mouse_strain, primary_infection, challenge_infection, infection_history)
 
-### add infection_history to P3 and P4
+##add infection_history to P3 and P4
 design_P3$infection_history <- paste(design_P3$primary_infection, design_P3$challenge_infection, sep = ":")
 design_P4$infection_history <- paste(design_P4$primary_infection, design_P4$challenge_infection, sep = ":")
 
-## bind designs into 1 table and remove clutter (rm function here, caution)
+#bind designs into 1 table and remove clutter (rm function here, caution)
 DESIGN <- bind_rows(design_P4, design_P3, design_E5, design_E11, design_E10) #32+32+117+16+20=217
 DESIGN$EH_ID <- gsub(" ", "", DESIGN$EH_ID)
 DESIGN$EH_ID <- gsub("_", "", DESIGN$EH_ID)
@@ -54,7 +54,7 @@ weight_E5 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/mast
 weight_P3 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P3_112019_Eim_record.csv")
 weight_P4 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/P4_082020_Eim_record.csv")
 
-## standardise to in common columns
+#standardise to in common columns
 WEIGHT <- bind_rows(weight_P4, weight_P3, weight_E5, weight_E11, weight_E10)
 WEIGHT$X <- NULL
 WEIGHT$EH_ID <- gsub(" ", "", WEIGHT$EH_ID)
@@ -64,7 +64,7 @@ write.csv(WEIGHT, "../GitHub/PhD/writeup/WEIGHT.csv")
 write.csv(WEIGHT, "~/Documents/GitHub/PhD/writeup/WEIGHT.csv")
 
 
-
+# 
 # LAB OOCYST
 oocyst_E10 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E10_112020_Eim_oocyst.csv")
 oocyst_E11 <- read.csv("https://raw.githubusercontent.com/derele/Eimeria_Lab/master/data/Experiment_results/E11_Oocyst_updateCSV.csv")
@@ -83,11 +83,14 @@ PARA <- full_join(PARA_1, PARA_2)
 
 # calculate oocyst AVG, total and OPG
 PARA$total_oocysts <- ((PARA$oocyst_sq1 
-                      + PARA$oocyst_sq2 
-                      + PARA$oocyst_sq3 
-                      + PARA$oocyst_sq4) / 4) * 
+                        + PARA$oocyst_sq2 
+                        + PARA$oocyst_sq3 
+                        + PARA$oocyst_sq4) / 4) * 
   10000 * # because volume chamber
   2
+
+PARA <- subset(PARA, PARA$labels != "E57aQSW")
+
 PARA$OPG <- PARA$total_oocysts/ PARA$feces_weight
 
 rm(list = ls("pattern" = "oocyst_"))

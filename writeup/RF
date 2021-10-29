@@ -1,0 +1,193 @@
+default randomForest best pick: 
+Random Forest 
+
+45 samples
+55 predictors
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 42, 39, 39, 42, 40, 41, ... 
+Resampling results across tuning parameters:
+
+  mtry  RMSE      Rsquared   MAE     
+    2   4.541584  0.4602266  3.894929
+   52   4.475997  0.4432546  3.829314
+  103   4.388294  0.4416026  3.719258
+  
+RMSE was used to select the optimal model using the smallest value.
+The final value used for the model was mtry = 103.
+
+> error_def_predict <- sqrt(mean((def_predict - test_immuno$maximum_weight_loss_challenge)^2))
+> print(error_def_predict) # 3.624385
+[1] 4.077213
+
+TNF                   100.000
+TICAM1                 28.530
+CD8                    17.249
+Treg                   16.324
+maximum_OPG_challenge  11.819
+SOCS1                  11.156
+Treg17                  9.551
+IL6                     9.456
+IFNy_CEWE               9.113
+MPO                     8.238
+Act_CD8                 7.534
+IRGM1                   6.633
+delta                   5.062
+MUC5AC                  4.352
+IFNy_CD8                4.275
+MYD88                   4.210
+RETNLB                  4.063
+primary_infectionUNI    3.951
+CXCR3                   3.672
+PRF1                    3.491
+
+
+RF1 tuned randomForest best pick:
+RF1 <- train(maximum_weight_loss_challenge ~ .,
+                data = train_immuno,
+                method = "rf",
+                tuneGrid = tuneGrid,
+                trControl = trControl,
+                importance = TRUE,
+                nodesize = 10,
+                ntree = 5000,
+                maxnodes = 10)
+
+45 samples
+55 predictors
+
+No pre-processing
+Resampling: Cross-Validated (10 fold) 
+Summary of sample sizes: 41, 40, 40, 41, 40, 41, ... 
+Resampling results:
+
+  RMSE      Rsquared   MAE     
+  4.597667  0.3900209  3.928904
+  
+Tuning parameter 'mtry' was held constant at a value of 9  
+> error_RF1_predict <- sqrt(mean((RF1predict - test_immuno$maximum_weight_loss_challenge)^2))
+> print(error_RF1_predict) # 3.546404
+[1] 4.162141
+
+TNF                             100.00
+TICAM1                           98.73
+MYD88                            82.67
+CD8                              76.05
+GE_PCA1                          75.01
+IL6                              73.49
+SOCS1                            70.51
+FACS_PCA1                        69.71
+infection_historyUNI:E88         68.94
+primary_infectionUNI             67.89
+eimeria_species_historyUNI:FAL   67.56
+Treg                             67.34
+eimeria_species_primaryUNI       66.93
+Act_CD8                          66.23
+RETNLB                           62.66
+maximum_OPG_challenge            62.54
+IL13                             60.47
+PRF1                             53.58
+CXCR3                            53.45
+CD4                              52.40
+
+
+
+
+
+
+
+
+
+
+
+
+
+FACS all:
+Call:
+lm(formula = maximum_weight_loss_challenge ~ CD4 + Treg + Div_Treg + 
+    Treg17 + Th1 + Div_Th1 + Th17 + Act_CD8 + Div_Act_CD8 + IFNy_CD8, 
+    data = LM8_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-10.3647  -3.2348  -0.1447   2.9228  10.0817 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 74.70904    8.86808   8.424 9.99e-11 ***
+CD4          0.41052    0.11796   3.480  0.00114 ** 
+Treg         0.44850    0.32054   1.399  0.16876    
+Div_Treg     0.16680    0.10793   1.545  0.12939    
+Treg17      -0.72170    0.22652  -3.186  0.00265 ** 
+Th1          1.38095    0.53399   2.586  0.01309 *  
+Div_Th1      0.20698    0.08622   2.401  0.02067 *  
+Th17        -4.43763    1.51724  -2.925  0.00543 ** 
+Act_CD8     -0.65086    0.19168  -3.395  0.00146 ** 
+Div_Act_CD8 -0.32133    0.09619  -3.340  0.00171 ** 
+IFNy_CD8     0.22120    0.09874   2.240  0.03018 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 5.062 on 44 degrees of freedom
+Multiple R-squared:  0.4914,	Adjusted R-squared:  0.3758 
+F-statistic: 4.251 on 10 and 44 DF,  p-value: 0.0003647
+
+GE all:
+Call:
+lm(formula = maximum_weight_loss_challenge ~ CXCL9 + CXCR3 + 
+    IDO1 + IFNG + IL13 + IL1RN + IRGM1 + MYD88 + RETNLB + TICAM1 + 
+    TNF + IL17A, data = LM10_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-10.7085  -3.2026  -0.0335   3.3688   9.3638 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  90.3602     6.0805  14.861  < 2e-16 ***
+CXCL9         0.8851     0.3271   2.706  0.00850 ** 
+CXCR3        -0.6992     0.4799  -1.457  0.14945    
+IDO1         -0.6129     0.3789  -1.618  0.11006    
+IFNG          0.7299     0.5321   1.372  0.17446    
+IL13          2.6834     0.8721   3.077  0.00296 ** 
+IL1RN         0.6654     0.3962   1.680  0.09736 .  
+IRGM1         0.8452     0.4689   1.803  0.07565 .  
+MYD88         0.3094     0.1643   1.883  0.06373 .  
+RETNLB       -0.8447     0.2577  -3.278  0.00161 ** 
+TICAM1       -0.8351     0.2925  -2.855  0.00561 ** 
+TNF          -1.0152     0.3749  -2.708  0.00846 ** 
+IL17A        -0.7197     0.2990  -2.407  0.01864 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 4.557 on 72 degrees of freedom
+  (18 observations deleted due to missingness)
+Multiple R-squared:  0.5995,	Adjusted R-squared:  0.5327 
+F-statistic: 8.981 on 12 and 72 DF,  p-value: 3.148e-10
+
+
+> facs_models <- list("PCA" = LM7, "AIC all" = LM8_step)
+> aictab(facs_models)
+
+Model selection based on AICc:
+
+         K   AICc Delta_AICc AICcWt Cum.Wt      LL
+AIC all 12 353.62       0.00   0.98   0.98 -161.10
+PCA      4 361.71       8.08   0.02   1.00 -176.45
+
+
+> ge_models <- list("PCA" = LM9, "AIC all" = LM10_step)
+> aictab(facs_models)
+
+Model selection based on AICc:
+
+         K   AICc Delta_AICc AICcWt Cum.Wt      LL
+AIC all 12 353.62       0.00   0.98   0.98 -161.10
+PCA      4 361.71       8.08   0.02   1.00 -176.45
+
+
+
+
+
+
